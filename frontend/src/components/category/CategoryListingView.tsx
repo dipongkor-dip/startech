@@ -1,0 +1,169 @@
+'use client';
+
+import * as React from 'react';
+import Link from 'next/link';
+import { HomeIcon } from 'lucide-react';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { cn } from '@/lib/utils';
+import type { CategoryListingResolved, MockProduct } from '@/lib/category-listing';
+import { getMockProducts } from '@/lib/category-listing';
+import { CategoryFilters } from '@/components/category/CategoryFilters';
+import { CategoryProductCard } from '@/components/category/CategoryProductCard';
+
+export function CategoryListingView({
+  listing,
+  products = getMockProducts(),
+}: {
+  listing: CategoryListingResolved;
+  products?: MockProduct[];
+}) {
+  const [pageSize, setPageSize] = React.useState<string>('12');
+  const [sortBy, setSortBy] = React.useState<string>('default');
+
+  const crumbs = listing.breadcrumbs;
+
+  return (
+    <div className="flex flex-1 flex-col bg-muted/30">
+      <div className="border-b border-border bg-background">
+        <div className="mx-auto max-w-7xl px-4 py-3">
+          <Breadcrumb>
+            <BreadcrumbList>
+              {crumbs.map((c, i) => (
+                <React.Fragment key={`${c.href}-${i}`}>
+                  {i > 0 ? <BreadcrumbSeparator /> : null}
+                  <BreadcrumbItem>
+                    {i === 0 ? (
+                      <BreadcrumbLink
+                        render={
+                          <Link
+                            href={c.href}
+                            className="inline-flex items-center gap-1"
+                            aria-label={c.label}
+                          />
+                        }
+                      >
+                        <HomeIcon className="size-4" />
+                        <span className="sr-only">{c.label}</span>
+                      </BreadcrumbLink>
+                    ) : i < crumbs.length - 1 ? (
+                      <BreadcrumbLink render={<Link href={c.href} />}>{c.label}</BreadcrumbLink>
+                    ) : (
+                      <BreadcrumbPage>{c.label}</BreadcrumbPage>
+                    )}
+                  </BreadcrumbItem>
+                </React.Fragment>
+              ))}
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+      </div>
+
+      <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-6">
+        <header className="mb-6 max-w-3xl">
+          <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+            {listing.title}
+          </h1>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            {listing.description}
+          </p>
+        </header>
+
+        <div className="mb-6 flex flex-wrap gap-2">
+          {listing.pills.map((pill) => {
+            const active = pill.href === listing.path;
+            return (
+              <Link
+                key={pill.href}
+                href={pill.href}
+                className={cn(
+                  'inline-flex rounded-full border px-3 py-1.5 text-sm font-medium transition-colors',
+                  active
+                    ? 'border-orange-500 bg-orange-50 text-orange-600 dark:bg-orange-950/40'
+                    : 'border-border bg-background hover:bg-muted'
+                )}
+              >
+                {pill.label}
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+          <CategoryFilters />
+
+          <div className="min-w-0 flex-1 space-y-4">
+            <div className="flex flex-col gap-3 rounded-xl border border-border bg-card px-4 py-3 ring-1 ring-foreground/5 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="text-sm font-semibold text-foreground">{listing.sectionLabel}</h2>
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Show</span>
+                  <Select
+                    value={pageSize}
+                    onValueChange={(v) => {
+                      // Shadcn Select returns `string | null` when clearing value.
+                      if (v) setPageSize(v);
+                    }}
+                  >
+                    <SelectTrigger size="sm" className="min-w-[5rem]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="12">12</SelectItem>
+                      <SelectItem value="24">24</SelectItem>
+                      <SelectItem value="36">36</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Sort By</span>
+                  <Select
+                    value={sortBy}
+                    onValueChange={(v) => {
+                      if (v) setSortBy(v);
+                    }}
+                  >
+                    <SelectTrigger size="sm" className="min-w-[10rem]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="default">Default</SelectItem>
+                      <SelectItem value="price-asc">Price: Low to High</SelectItem>
+                      <SelectItem value="price-desc">Price: High to Low</SelectItem>
+                      <SelectItem value="name">Name</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+              {products.length === 0 ? (
+                <div className="col-span-full py-16 text-center text-sm text-muted-foreground">
+                  Sorry! No Product Found
+                </div>
+              ) : (
+                products.map((p) => (
+                  <CategoryProductCard key={p.id} product={p} />
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
