@@ -1,11 +1,11 @@
-export const filtersProducts = [
-  {isUse: ["desktop", "laptop", "tablet", "phone"], title: "Processor", i: ["Intel", "AMD", "Apple"]},
-  {isUse: ["desktop", "laptop", "tablet", "phone"], title: "RAM", i: ["8 GB", "16 GB", "32 GB", "64 GB", "128 GB"]},
-  {isUse: ["desktop", "laptop", "tablet", "phone"], title: "Storage", i: ["256 GB", "512 GB", "1 TB"]},
-  {isUse: ["desktop", "laptop", "tablet", "phone"], title: "Display Size", i: ["< 10 inch", "10-15 inch", "> 15 inch"]},
-  {isUse: ["desktop", "laptop"], title: "Graphics Card", i: ["NVIDIA", "AMD", "Integrated"]},
-  {isUse: ["desktop", "laptop"], title: "Operating System", i: ["Windows", "macOS", "Linux"]},
-  {isUse: ["desktop", "laptop", "tablet"], title: "Color", i: ["Black", "Silver", "White"]},
+export const filterOptions = [
+  {isUse: ["desktops", "laptop", "tablet", "phone"], title: "Processor", i: ["Intel", "AMD", "Apple"]},
+  {isUse: ["desktops", "laptop", "tablet", "phone"], title: "RAM", i: ["8 GB", "16 GB", "32 GB", "64 GB", "128 GB"]},
+  {isUse: ["desktops", "laptop", "tablet", "phone"], title: "Storage", i: ["256 GB", "512 GB", "1 TB"]},
+  {isUse: ["desktops", "laptop", "tablet", "phone"], title: "Display Size", i: ["6.0\" to 6.4\"", "6.5\" to 6.9\"", "7.0\" and Above"]},
+  {isUse: ["desktops", "laptop"], title: "Graphics Card", i: ["NVIDIA", "AMD", "Integrated"]},
+  {isUse: ["desktops", "laptop"], title: "Operating System", i: ["Windows", "macOS", "Linux"]},
+  {isUse: ["desktops", "laptop", "tablet"], title: "Color", i: ["Black", "Silver", "White"]},
   {
     isUse: ["desktop", "laptop", "tablet", "phone"],
     title: "Brand",
@@ -40,8 +40,8 @@ export const filtersProducts = [
   },
   {isUse: ["camera"], title: "Megapixels", i: ["20 Mega Pixels", "23 Mega Pixels", "48 Mega Pixels", "108 Mega Pixels"]},
   {isUse: ["camera"], title: "Resolution", i: ["720p", "1080p", "2K", "4K", "5K", "8K", "12K", "16K"]},
-  {isUse: ["desktop", "laptop", "graphics_card"], title: "Max Resolution", i: ["3024x1964", "3840x2160", "5120x2880", "7680x4320"]},
+  {isUse: ["desktops", "laptop", "graphics_card"], title: "Max Resolution", i: ["3024x1964", "3840x2160", "5120x2880", "7680x4320"]},
   {isUse: ["graphics_card"], title: "Chipset", i: ["NVIDIA GeForce", "AMD Radeon", "Intel Iris Xe"]},
   {isUse: ["graphics_card"], title: "Memory Type", i: ["GDDR3", "GDDR4", "GDDR5", "GDDR6", "GDDR6X", "GDDR7"]},
-  {isUse: ["desktop", "laptop"], title: "SSD", i: ["256GB", "512 GB", "1 TB", "2 TB"]},
+  {isUse: ["desktops", "laptop"], title: "SSD", i: ["256GB", "512 GB", "1 TB", "2 TB"]},
 ];

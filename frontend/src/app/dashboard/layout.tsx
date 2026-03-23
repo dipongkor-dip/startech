@@ -1,29 +1,21 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAppSelector } from '@/store/hooks';
+import {useEffect} from "react";
+import {useRouter} from "next/navigation";
+import {useAppSelector} from "@/store/hooks";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardLayout({children}: {children: React.ReactNode}) {
   const router = useRouter();
-  const { isAuthenticated, initialized } = useAppSelector((s) => s.auth);
+  const {isAuthenticated, initialized} = useAppSelector((s) => s.auth);
 
   useEffect(() => {
     if (initialized && !isAuthenticated) {
-      router.replace('/login');
+      router.replace("/login");
     }
   }, [initialized, isAuthenticated, router]);
 
   if (!initialized) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
-        Loading…
-      </div>
-    );
+    return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading…</div>;
   }
 
   if (!isAuthenticated) {

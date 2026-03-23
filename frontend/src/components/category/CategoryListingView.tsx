@@ -70,10 +70,12 @@ export function CategoryListingView({listing, products = getMockProducts()}: {li
         </div>
 
         <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+          {/** category filters */}
           <CategoryFilters />
 
           <div className="min-w-0 flex-1 space-y-4">
-            <div className="flex flex-col gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+            {/** Products header */}
+            <div className="flex flex-col gap-3 rounded border border-border bg-card px-4 py-3 shadow-sm shadow-sidebar-border sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-sm font-semibold text-foreground">{listing.sectionLabel}</h2>
               <div className="flex flex-wrap items-center gap-4">
                 <div className="flex items-center gap-2">
@@ -85,13 +87,19 @@ export function CategoryListingView({listing, products = getMockProducts()}: {li
                       if (v) setPageSize(v);
                     }}
                   >
-                    <SelectTrigger size="sm" className="min-w-[5rem]">
+                    <SelectTrigger size="sm" className="min-w-[5rem] border-none bg-gray-100 rounded-none">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="12">12</SelectItem>
-                      <SelectItem value="24">24</SelectItem>
-                      <SelectItem value="36">36</SelectItem>
+                    <SelectContent className="rounded-none border-none bg-gray-100">
+                      <SelectItem value="12" className="hover:bg-blue-600 hover:text-white">
+                        12
+                      </SelectItem>
+                      <SelectItem value="24" className="hover:bg-blue-600 hover:text-white">
+                        24
+                      </SelectItem>
+                      <SelectItem value="36" className="hover:bg-blue-600 hover:text-white">
+                        36
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -103,20 +111,29 @@ export function CategoryListingView({listing, products = getMockProducts()}: {li
                       if (v) setSortBy(v);
                     }}
                   >
-                    <SelectTrigger size="sm" className="min-w-[10rem]">
+                    <SelectTrigger size="sm" className="min-w-[10rem] border-none bg-gray-100">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="default">Default</SelectItem>
-                      <SelectItem value="price-asc">Price: Low to High</SelectItem>
-                      <SelectItem value="price-desc">Price: High to Low</SelectItem>
-                      <SelectItem value="name">Name</SelectItem>
+                    <SelectContent className="rounded-none">
+                      <SelectItem value="default" className="hover:bg-blue-600 hover:text-white">
+                        Default
+                      </SelectItem>
+                      <SelectItem value="price-asc" className="hover:bg-blue-600 hover:text-white">
+                        Price: Low to High
+                      </SelectItem>
+                      <SelectItem value="price-desc" className="hover:bg-blue-600 hover:text-white">
+                        Price: High to Low
+                      </SelectItem>
+                      <SelectItem value="name" className="hover:bg-blue-600 hover:text-white">
+                        Name
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
             </div>
 
+            {/** Products */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               {products.length === 0 ? (
                 <div className="col-span-full py-16 text-center text-sm text-muted-foreground">Sorry! No Product Found</div>

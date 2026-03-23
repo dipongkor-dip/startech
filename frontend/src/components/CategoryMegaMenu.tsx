@@ -17,7 +17,7 @@ function SubFlyout({sub, parentLabel}: {sub: NonNullable<(typeof NAV_CATEGORIES)
       aria-label={`${parentLabel} subcategories`}
     >
       {sub.map((s) => (
-        <Link key={s.href} href={s.href} className="block px-3 py-1 text-sm transition-colors hover:bg-orange-500 hover:text-white">
+        <Link key={s.href} href={s.href} className="block px-3 py-1 text-sm transition-colors hover:bg-chart-1 hover:text-white">
           {s.label}
         </Link>
       ))}
@@ -34,7 +34,7 @@ export function CategoryMegaMenu() {
             <li key={category.label} className="group/cat relative py-2">
               <Link
                 href={category.href ?? "#"}
-                className="inline-flex items-center pr-3 py-2 text-sm font-medium text-foreground transition-colors hover:text-orange-500 group-hover/cat:text-orange-500"
+                className="inline-flex items-center pr-3 py-2 text-sm font-medium text-foreground transition-colors hover:text-chart-1 group-hover/cat:text-chart-1"
               >
                 {category.label}
               </Link>
@@ -44,7 +44,7 @@ export function CategoryMegaMenu() {
                 className={cn(
                   "invisible absolute left-0 top-full z-40 min-w-[14rem] opacity-0 transition-opacity duration-150",
                   "group-hover/cat:visible group-hover/cat:opacity-100",
-                  "group-focus-within/cat:visible group-focus-within/cat:opacity-100 border border-t-2 border-t-orange-500",
+                  "group-focus-within/cat:visible group-focus-within/cat:opacity-100 border border-t-2 border-t-chart-1",
                 )}
               >
                 <div className="border border-border bg-popover shadow-lg">
@@ -53,7 +53,7 @@ export function CategoryMegaMenu() {
                       <div key={item.label} className="group/sub relative">
                         <Link
                           href={item.href}
-                          className="flex items-center justify-between gap-2 px-2 py-1 text-sm text-foreground transition-colors hover:bg-orange-500 hover:text-white"
+                          className="flex items-center justify-between gap-2 px-2 py-1 text-sm text-foreground transition-colors hover:bg-chart-1 hover:text-white"
                         >
                           <span>{item.label}</span>
                           <ChevronRightIcon className="size-4 shrink-0 opacity-70" aria-hidden />
@@ -64,7 +64,7 @@ export function CategoryMegaMenu() {
                       <Link
                         key={item.href}
                         href={item.href}
-                        className="block px-2 py-1 text-sm text-foreground transition-colors hover:bg-orange-500 hover:text-white"
+                        className="block px-2 py-1 text-sm text-foreground transition-colors hover:bg-chart-1 hover:text-white"
                       >
                         {item.label}
                       </Link>

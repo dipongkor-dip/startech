@@ -9,7 +9,7 @@ import {cn} from "@/lib/utils";
 import {TooltipProvider} from "@/components/ui/tooltip";
 import {Toaster} from "@/components/ui/sonner";
 
-const inter = Inter({subsets: ["cyrillic"], variable: "--sans-serif"});
+const inter = Inter({subsets: ["greek-ext"], variable: "--sans-serif"});
 
 export const metadata: Metadata = {
   title: "Star Tech",
