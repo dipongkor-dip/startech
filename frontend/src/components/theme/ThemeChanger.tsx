@@ -1,52 +1,43 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { useTheme } from "next-themes"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Button } from "@/components/ui/button"
+import * as React from "react";
+import {useTheme} from "next-themes";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
+import {Button} from "@/components/ui/button";
+import {Sun, Moon, Laptop} from "lucide-react";
 
 export function ThemeChanger() {
-  const { theme, setTheme, resolvedTheme } = useTheme()
-  const [mounted, setMounted] = React.useState(false)
+  const {theme, setTheme, resolvedTheme} = useTheme();
+  const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
-  // Avoid hydration mismatch when `resolvedTheme` differs between server/client.
-  if (!mounted) return null
+  if (!mounted) return null;
 
-  const current = (resolvedTheme ?? theme) as "light" | "dark" | "system"
-
-  // `current` will effectively be `light` or `dark` after resolution.
-  const show = current === "system" ? resolvedTheme : current
+  // Always show Sun or Moon depending on resolved theme
+  const show = resolvedTheme;
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Button variant="outline" size="sm" className="h-8">
-            Theme
-          </Button>
-        }
-      />
-      <DropdownMenuContent align="end" className="w-44">
+      <DropdownMenuTrigger>
+        <Button variant="outline" className="rounded-md border-none">
+          {show === "light" && <Sun />}
+          {show === "dark" && <Moon />}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="">
         <DropdownMenuItem onClick={() => setTheme("light")}>
-          Light {show === "light" ? "✓" : ""}
+          <Sun /> Light {theme === "light" ? "✓" : ""}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("dark")}>
-          Dark {show === "dark" ? "✓" : ""}
+          <Moon /> Dark {theme === "dark" ? "✓" : ""}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("system")}>
-          System {current === "system" ? "✓" : ""}
+          <Laptop /> System {theme === "system" ? "✓" : ""}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }
-

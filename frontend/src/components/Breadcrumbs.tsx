@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
+import Link from "next/link";
 
 export interface BreadcrumbItem {
   label: string;
@@ -11,7 +11,7 @@ interface BreadcrumbsProps {
   items: BreadcrumbItem[];
 }
 
-export default function Breadcrumbs({ items }: BreadcrumbsProps) {
+export default function Breadcrumbs({items}: BreadcrumbsProps) {
   return (
     <nav className="py-2 text-sm" aria-label="Breadcrumb">
       <ol className="flex items-center gap-1 text-gray-600">

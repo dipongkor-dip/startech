@@ -9,7 +9,7 @@ import {cn} from "@/lib/utils";
 import {TooltipProvider} from "@/components/ui/tooltip";
 import {Toaster} from "@/components/ui/sonner";
 
-const inter = Inter({subsets: ["latin"], variable: "--font-sans"});
+const inter = Inter({subsets: ["cyrillic"], variable: "--sans-serif"});
 
 export const metadata: Metadata = {
   title: "Star Tech",
@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", inter.variable)}>
+    <html lang="en" className={cn("sans-serif", inter.variable)}>
       <body className="flex min-h-screen flex-col">
         <ThemeProviderWrapper>
           <StoreProvider>
