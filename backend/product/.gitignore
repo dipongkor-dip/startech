@@ -1,0 +1,7 @@
+node_modules
+dist
+npm-debug.log
+.pnpm-store
+logs
+
+# production only node_modules, logs, .pnpm-store for persistence -> named mounted volumes
