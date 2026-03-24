@@ -45,6 +45,7 @@ export function CategoryListingView({listing, products = getMockProducts()}: {li
         </div>
       </div>
 
+      {/** existing categories */}
       <div className="mx-auto w-full max-w-7xl flex-1">
         <header className="mb-6 max-w-3xl">
           <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground md:text-3xl">{listing.title}</h1>
