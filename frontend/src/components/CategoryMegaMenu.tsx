@@ -86,7 +86,7 @@ export function CategoryMegaMenu() {
                           className="flex items-center justify-between gap-2 px-2 py-1 text-sm text-foreground transition-colors hover:bg-chart-1 hover:text-white"
                         >
                           <span>{item.label}</span>
-                          <ChevronRightIcon className="size-4 shrink-0 opacity-70" aria-hidden />
+                          <ChevronRightIcon className="size-4 shrink-0 opacity-70 text-chart-1" aria-hidden />
                         </Link>
                         <SubFlyout sub={item.sub} parentLabel={item.label} isOpen={openSub === item.label} onLinkClick={handleCloseAll} />
                       </div>

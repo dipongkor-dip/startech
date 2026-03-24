@@ -49,6 +49,7 @@ export function CategoryFilters({className, currentPath}: {className?: string; c
   const filterOptions = React.useMemo(() => getFilterOptionsForPath(currentPath), [currentPath]);
 
   const [range, setRange] = React.useState<[number, number]>([0, PRICE_MAX]);
+  const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [availability, setAvailability] = React.useState({
     inStock: false,
@@ -64,16 +65,41 @@ export function CategoryFilters({className, currentPath}: {className?: string; c
     return initial;
   });
 
+  const applyPriceQuery = (nextRange: [number, number]) => {
+    const nextSearchParams = new URLSearchParams(searchParams.toString());
+    if (nextRange[0] === 0 && nextRange[1] === PRICE_MAX) {
+      nextSearchParams.delete("price");
+    } else {
+      nextSearchParams.set("price", `${nextRange[0]},${nextRange[1]}`);
+    }
+
+    const queryString = nextSearchParams.toString();
+    router.push(`${pathname}${queryString ? `?${queryString}` : ""}`, {scroll: false});
+  };
+
+  const debouncedApplyPriceQuery = (nextRange: [number, number]) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      applyPriceQuery(nextRange);
+    }, 500); // 500ms delay
+  };
+
   const setMin = (n: number) => {
     if (Number.isNaN(n)) return;
     const nextMin = Math.min(Math.max(0, n), range[1]);
-    setRange([nextMin, range[1]]);
+    const nextRange: [number, number] = [nextMin, range[1]];
+    setRange(nextRange);
+    applyPriceQuery(nextRange); // Immediate update for inputs
   };
 
   const setMax = (n: number) => {
     if (Number.isNaN(n)) return;
     const nextMax = Math.min(Math.max(range[0], n), PRICE_MAX);
-    setRange([range[0], nextMax]);
+    const nextRange: [number, number] = [range[0], nextMax];
+    setRange(nextRange);
+    applyPriceQuery(nextRange); // Immediate update for inputs
   };
 
   const filterOptionQueryKey = (title: string) => title.toLowerCase().replace(/\s+/g, "_");
@@ -170,7 +196,29 @@ export function CategoryFilters({className, currentPath}: {className?: string; c
     });
 
     setSelectedFilters(loadedFilters);
+
+    // Load price range from URL
+    const priceParam = searchParams.get("price");
+    if (priceParam) {
+      const [minStr, maxStr] = priceParam.split(",");
+      const min = parseInt(minStr, 10);
+      const max = parseInt(maxStr, 10);
+      if (!isNaN(min) && !isNaN(max) && min >= 0 && max <= PRICE_MAX && min <= max) {
+        setRange([min, max]);
+      }
+    } else {
+      setRange([0, PRICE_MAX]);
+    }
   }, [filterOptions, normalizeQueryValue, searchParams]);
+
+  // Cleanup debounce timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
 
   const defaultOpenFilters = React.useMemo(() => {
     return [
@@ -193,7 +241,11 @@ export function CategoryFilters({className, currentPath}: {className?: string; c
               step={500}
               value={range}
               onValueChange={(v) => {
-                if (Array.isArray(v) && v.length === 2) setRange([v[0], v[1]]);
+                if (Array.isArray(v) && v.length === 2) {
+                  const nextRange: [number, number] = [v[0], v[1]];
+                  setRange(nextRange);
+                  debouncedApplyPriceQuery(nextRange);
+                }
               }}
               className="py-6 [&_[data-slot=slider-track]]:h-2 [&_[data-slot=slider-track]]:bg-[#e7e8ee] [&_[data-slot=slider-range]]:bg-chart-1 [&_[data-slot=slider-thumb]]:size-5 [&_[data-slot=slider-thumb]]:border-2 [&_[data-slot=slider-thumb]]:border-white dark:[&_[data-slot=slider-thumb]]:border-gray-300 [&_[data-slot=slider-thumb]]:bg-chart-1 [&_[data-slot=slider-thumb]]:shadow-[0_0_0_2px_rgba(249,115,22,0.35)]"
             />

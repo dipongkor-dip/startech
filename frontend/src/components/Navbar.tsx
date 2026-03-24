@@ -6,7 +6,7 @@ import {useAppSelector} from "@/store/hooks";
 import {CategoryMegaMenu} from "@/components/CategoryMegaMenu";
 import {ThemeChanger} from "@/components/theme/ThemeChanger";
 import {useState} from "react";
-import {Gift, Cpu, User} from "lucide-react";
+import {Gift, Cpu} from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();

@@ -15,8 +15,8 @@ export function CategoryListingView({listing, products = getMockProducts()}: {li
   const [pageSize, setPageSize] = React.useState<string>("12");
   const [sortBy, setSortBy] = React.useState<string>("default");
   const hasCategoryPills = listing.pills.length > 0;
-
   const crumbs = listing.breadcrumbs;
+  const showMainCategoryHeader = crumbs.length <= 2;
 
   return (
     <div className="flex flex-1 flex-col">
@@ -48,10 +48,12 @@ export function CategoryListingView({listing, products = getMockProducts()}: {li
 
       {/** existing categories */}
       <div className="mx-auto w-full max-w-7xl flex-1">
-        <header className="mb-6 max-w-3xl">
-          <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground md:text-3xl">{listing.title}</h1>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{listing.description}</p>
-        </header>
+        {showMainCategoryHeader ? (
+          <header className="mb-6 max-w-3xl">
+            <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground md:text-3xl">{listing.title}</h1>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{listing.description}</p>
+          </header>
+        ) : null}
 
         {hasCategoryPills ? (
           <div className="mb-6 flex flex-wrap gap-2">
@@ -79,12 +81,11 @@ export function CategoryListingView({listing, products = getMockProducts()}: {li
 
           <div className="min-w-0 flex-1 space-y-4">
             {/** Products header */}
-            {hasCategoryPills ? (
-              <div className="flex flex-col gap-3 rounded border border-border bg-card px-4 py-3 shadow-sm shadow-sidebar-border sm:flex-row sm:items-center sm:justify-between">
-                <h2 className="text-sm font-semibold text-foreground">{listing.sectionLabel}</h2>
-                <div className="flex flex-wrap items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Show</span>
+            <div className="flex flex-col gap-3 rounded border border-border bg-card px-4 py-3 shadow-sm shadow-sidebar-border sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="text-sm font-semibold text-foreground">{listing.sectionLabel}</h2>
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Show</span>
                     <Select
                       value={pageSize}
                       onValueChange={(v) => {
@@ -134,7 +135,6 @@ export function CategoryListingView({listing, products = getMockProducts()}: {li
                   </div>
                 </div>
               </div>
-            ) : null}
 
             {/** Products */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
