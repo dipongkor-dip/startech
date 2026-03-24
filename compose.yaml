@@ -45,9 +45,8 @@ services:
       NEXT_PUBLIC_CHAT_SERVICE_URL: ${NEXT_PUBLIC_CHAT_SERVICE_URL}
     volumes:
       - ./frontend:/app
-      - ./frontend/node_modules:/app/node_modules
+      - frontend_node_modules:/app/node_modules
       - ./frontend/.pnpm-store:/app/.pnpm-store
-    command: sh -c "CI=true pnpm install --force && pnpm dev"
     depends_on:
       - user
       - chat
@@ -198,3 +197,4 @@ services:
 volumes:
   postgres_data:
   mongodb_data:
+  frontend_node_modules:

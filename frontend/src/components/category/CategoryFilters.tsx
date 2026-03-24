@@ -185,7 +185,7 @@ export function CategoryFilters({className, currentPath}: {className?: string; c
       <Accordion multiple defaultValue={defaultOpenFilters} className="flex flex-col gap-2">
         {/** Price range filter */}
         <AccordionItem value="price" className="rounded bg-card shadow-sm border-border shadow-sidebar-border">
-          <AccordionTrigger className="border-gray-300 border-x-0 border-t-0 rounded-none px-3 py-3 text-sm font-semibold text-foreground hover:no-underline">Price Range</AccordionTrigger>
+          <AccordionTrigger className="border-gray-300 dark:border-gray-700 border-x-0 border-t-0 rounded-none px-3 py-3 text-sm font-semibold text-foreground hover:no-underline">Price Range</AccordionTrigger>
           <AccordionContent className="px-3 pb-4 pt-0 space-y-4">
             <Slider
               min={0}
@@ -195,7 +195,7 @@ export function CategoryFilters({className, currentPath}: {className?: string; c
               onValueChange={(v) => {
                 if (Array.isArray(v) && v.length === 2) setRange([v[0], v[1]]);
               }}
-              className="py-6 [&_[data-slot=slider-track]]:h-2 [&_[data-slot=slider-track]]:bg-[#e7e8ee] [&_[data-slot=slider-range]]:bg-chart-1 [&_[data-slot=slider-thumb]]:size-5 [&_[data-slot=slider-thumb]]:border-2 [&_[data-slot=slider-thumb]]:border-white [&_[data-slot=slider-thumb]]:bg-chart-1 [&_[data-slot=slider-thumb]]:shadow-[0_0_0_2px_rgba(249,115,22,0.35)]"
+              className="py-6 [&_[data-slot=slider-track]]:h-2 [&_[data-slot=slider-track]]:bg-[#e7e8ee] [&_[data-slot=slider-range]]:bg-chart-1 [&_[data-slot=slider-thumb]]:size-5 [&_[data-slot=slider-thumb]]:border-2 [&_[data-slot=slider-thumb]]:border-white dark:[&_[data-slot=slider-thumb]]:border-gray-300 [&_[data-slot=slider-thumb]]:bg-chart-1 [&_[data-slot=slider-thumb]]:shadow-[0_0_0_2px_rgba(249,115,22,0.35)]"
             />
 
             <div className="flex items-center gap-2">
@@ -223,7 +223,7 @@ export function CategoryFilters({className, currentPath}: {className?: string; c
         </AccordionItem>
 
         <AccordionItem value="availability" className="rounded bg-card shadow-sm border-border shadow-sidebar-border">
-          <AccordionTrigger className="border-gray-300 border-x-0 border-t-0 rounded-none px-3 py-3 text-sm font-semibold text-foreground hover:no-underline">
+          <AccordionTrigger className="border-gray-300 dark:border-gray-700 border-x-0 border-t-0 rounded-none px-3 py-3 text-sm font-semibold text-foreground hover:no-underline">
             Availability
           </AccordionTrigger>
           <AccordionContent className="px-3 py-3 space-y-0">
@@ -262,7 +262,7 @@ export function CategoryFilters({className, currentPath}: {className?: string; c
 
         {filterOptions.map((filter) => (
           <AccordionItem key={filter.title} value={filter.title.toLowerCase().replace(/\s+/g, "-")} className="bg-card shadow-sm border-border shadow-sidebar-border">
-            <AccordionTrigger className="border-gray-300 border-x-0 border-t-0 rounded-none px-3 py-3 font-semibold hover:no-underline">
+            <AccordionTrigger className="border-gray-300 dark:border-gray-700 border-x-0 border-t-0 rounded-none px-3 py-3 font-semibold hover:no-underline">
               {filter.title}
             </AccordionTrigger>
             <AccordionContent className="px-3 py-3 space-y-0 max-h-80 overflow-y-auto custom-scrollbar">

@@ -46,7 +46,7 @@ export function CategoryMegaMenu() {
   }, []);
 
   return (
-    <nav aria-label="Product categories" className="bg-background">
+    <nav aria-label="Product categories" className="bg-card">
       <div className="mx-auto max-w-7xl">
         <ul className="flex flex-wrap items-center">
           {NAV_CATEGORIES.map((category) => (

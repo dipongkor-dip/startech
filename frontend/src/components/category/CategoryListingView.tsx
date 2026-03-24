@@ -92,10 +92,10 @@ export function CategoryListingView({listing, products = getMockProducts()}: {li
                         if (v) setPageSize(v);
                       }}
                     >
-                      <SelectTrigger size="sm" className="min-w-[5rem] border-none bg-gray-100 rounded-none">
+                      <SelectTrigger size="sm" className="min-w-[5rem] border-none bg-background rounded-none ring-0">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="rounded-none border-none bg-gray-100">
+                      <SelectContent className="rounded-none border-none bg-card">
                         <SelectItem value="12" className="hover:bg-blue-600 hover:text-white">
                           12
                         </SelectItem>
@@ -116,7 +116,7 @@ export function CategoryListingView({listing, products = getMockProducts()}: {li
                         if (v) setSortBy(v);
                       }}
                     >
-                      <SelectTrigger size="sm" className="min-w-[10rem] border-none bg-gray-100">
+                      <SelectTrigger size="sm" className="min-w-[10rem] border-none bg-background ring-0">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="rounded-none">
@@ -124,13 +124,10 @@ export function CategoryListingView({listing, products = getMockProducts()}: {li
                           Default
                         </SelectItem>
                         <SelectItem value="price-asc" className="hover:bg-blue-600 hover:text-white">
-                          Price: Low to High
+                          Price (Low &gt; High)
                         </SelectItem>
                         <SelectItem value="price-desc" className="hover:bg-blue-600 hover:text-white">
-                          Price: High to Low
-                        </SelectItem>
-                        <SelectItem value="name" className="hover:bg-blue-600 hover:text-white">
-                          Name
+                          Price (High &lt; Low)
                         </SelectItem>
                       </SelectContent>
                     </Select>
