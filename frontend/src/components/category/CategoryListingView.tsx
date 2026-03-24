@@ -2,24 +2,45 @@
 
 import * as React from "react";
 import Link from "next/link";
+import {useRouter, useSearchParams} from "next/navigation";
 import {HomeIcon} from "lucide-react";
 import {Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator} from "@/components/ui/breadcrumb";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {cn} from "@/lib/utils";
+import {PaginationFilter} from "@/components/pagination/PaginationFilter";
 import type {CategoryListingResolved, MockProduct} from "@/lib/category-listing";
 import {getMockProducts} from "@/lib/category-listing";
 import {CategoryFilters} from "@/components/category/CategoryFilters";
 import {CategoryProductCard} from "@/components/category/CategoryProductCard";
 
 export function CategoryListingView({listing, products = getMockProducts()}: {listing: CategoryListingResolved; products?: MockProduct[]}) {
-  const [pageSize, setPageSize] = React.useState<string>("12");
-  const [sortBy, setSortBy] = React.useState<string>("default");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [pageSize, setPageSize] = React.useState<string>(searchParams.get("limit") || "12");
+  const [sortBy, setSortBy] = React.useState<string>(searchParams.get("sortBy") || "default");
+  const [currentPage, setCurrentPage] = React.useState<number>(parseInt(searchParams.get("page") || "1"));
+
+  const totalItems = products.length;
+  const limit = Math.max(1, Number(pageSize));
+  const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+
+  const handlePageChange = (page: number) => {
+    const normalizedPage = Math.min(Math.max(1, page), totalPages);
+    setCurrentPage(normalizedPage);
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    newSearchParams.set("limit", pageSize);
+    newSearchParams.set("sortBy", sortBy);
+    newSearchParams.set("page", normalizedPage.toString());
+    router.push(`${listing.path}?${newSearchParams.toString()}`);
+  };
+
   const hasCategoryPills = listing.pills.length > 0;
   const crumbs = listing.breadcrumbs;
   const showMainCategoryHeader = crumbs.length <= 2;
 
   return (
     <div className="flex flex-1 flex-col">
+      {/** NavBar Categories */}
       <div className="bg-background">
         <div className="mx-auto max-w-7xl py-5">
           <Breadcrumb>
@@ -86,55 +107,70 @@ export function CategoryListingView({listing, products = getMockProducts()}: {li
               <div className="flex flex-wrap items-center gap-4">
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">Show</span>
-                    <Select
-                      value={pageSize}
-                      onValueChange={(v) => {
-                        // Shadcn Select returns `string | null` when clearing value.
-                        if (v) setPageSize(v);
-                      }}
-                    >
-                      <SelectTrigger size="sm" className="min-w-[5rem] border-none bg-background rounded-none ring-0">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-none border-none bg-card">
-                        <SelectItem value="12" className="hover:bg-blue-600 hover:text-white">
-                          12
-                        </SelectItem>
-                        <SelectItem value="24" className="hover:bg-blue-600 hover:text-white">
-                          24
-                        </SelectItem>
-                        <SelectItem value="36" className="hover:bg-blue-600 hover:text-white">
-                          36
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Sort By</span>
-                    <Select
-                      value={sortBy}
-                      onValueChange={(v) => {
-                        if (v) setSortBy(v);
-                      }}
-                    >
-                      <SelectTrigger size="sm" className="min-w-[10rem] border-none bg-background ring-0">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-none">
-                        <SelectItem value="default" className="hover:bg-blue-600 hover:text-white">
-                          Default
-                        </SelectItem>
-                        <SelectItem value="price-asc" className="hover:bg-blue-600 hover:text-white">
-                          Price (Low &gt; High)
-                        </SelectItem>
-                        <SelectItem value="price-desc" className="hover:bg-blue-600 hover:text-white">
-                          Price (High &lt; Low)
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <Select
+                    value={pageSize}
+                    onValueChange={(v) => {
+                      if (v) {
+                        setPageSize(v);
+                        setCurrentPage(1);
+                        const newSearchParams = new URLSearchParams(searchParams.toString());
+                        newSearchParams.set("limit", v);
+                        newSearchParams.set("sortBy", sortBy);
+                        newSearchParams.set("page", "1");
+                        router.push(`${listing.path}?${newSearchParams.toString()}`);
+                      }
+                    }}
+                  >
+                    <SelectTrigger size="sm" className="min-w-[5rem] border-none bg-background rounded-none ring-0">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-none border-none bg-card">
+                      <SelectItem value="12" className="hover:bg-blue-600 hover:text-white">
+                        12
+                      </SelectItem>
+                      <SelectItem value="24" className="hover:bg-blue-600 hover:text-white">
+                        24
+                      </SelectItem>
+                      <SelectItem value="36" className="hover:bg-blue-600 hover:text-white">
+                        36
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Sort By</span>
+                  <Select
+                    value={sortBy}
+                    onValueChange={(v) => {
+                      if (v) {
+                        setSortBy(v);
+                        setCurrentPage(1);
+                        const newSearchParams = new URLSearchParams(searchParams.toString());
+                        newSearchParams.set("limit", pageSize);
+                        newSearchParams.set("sortBy", v);
+                        newSearchParams.set("page", "1");
+                        router.push(`${listing.path}?${newSearchParams.toString()}`);
+                      }
+                    }}
+                  >
+                    <SelectTrigger size="sm" className="min-w-[10rem] border-none bg-background ring-0">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-none">
+                      <SelectItem value="default" className="hover:bg-blue-600 hover:text-white">
+                        Default
+                      </SelectItem>
+                      <SelectItem value="asc" className="hover:bg-blue-600 hover:text-white">
+                        Price (Low &gt; High)
+                      </SelectItem>
+                      <SelectItem value="desc" className="hover:bg-blue-600 hover:text-white">
+                        Price (High &lt; Low)
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
+            </div>
 
             {/** Products */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
@@ -144,6 +180,17 @@ export function CategoryListingView({listing, products = getMockProducts()}: {li
                 products.map((p) => <CategoryProductCard key={p.id} product={p} />)
               )}
             </div>
+
+            {/** Pagination */}
+            {products.length > 0 && (
+              <PaginationFilter
+                currentPage={currentPage}
+                pageSize={limit}
+                totalItems={totalItems}
+                onPageChange={handlePageChange}
+                className="mt-1"
+              />
+            )}
           </div>
         </div>
       </div>
