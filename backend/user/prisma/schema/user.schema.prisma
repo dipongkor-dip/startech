@@ -1,0 +1,39 @@
+enum UserRole {
+  superadmin
+  admin
+  productManager
+  deliveryBoy
+  customerSupportManager
+  customer
+}
+
+model User {
+  id          String   @id @default(cuid())
+  phone       String?  @unique
+  email       String?  @unique
+  password    String?
+  credentials Json?
+  provider    String?  // 'google' | 'facebook' | 'local'
+  providerId  String?  // OAuth provider user id
+  isValidated Boolean  @default(false)
+  role        UserRole @default(customer)
+  otpCode     String?
+  otpExpiresAt DateTime?
+  otpAttempts Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  profile Profile?
+}
+
+model Profile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String?
+  avatar    String?
+  address   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

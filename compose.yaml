@@ -1,0 +1,201 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-startech} -d ${POSTGRES_DB:-postgres}"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    volumes:
+      - mongodb_data:/data/db
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      PORT: 3000
+      API_URL: ${USER_SERVICE_URL:-http://user:3003}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_CHAT_SERVICE_URL: ${NEXT_PUBLIC_CHAT_SERVICE_URL}
+    volumes:
+      - ./frontend:/app
+      # - frontend_node_modules:/app/node_modules
+      # - ./frontend/.pnpm-store:/app/.pnpm-store
+    depends_on:
+      - user
+      - chat
+    command: sh -c "CI=true pnpm install --force && pnpm exec next dev --hostname 0.0.0.0 --port 3000"
+
+  delivery:
+    build:
+      context: ./backend/delivery
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    env_file:
+      - .env
+    environment:
+      PORT: 3001
+      NODE_ENV: ${NODE_ENV}
+      FRONTEND_URL: ${FRONTEND_URL}
+      USER_SERVICE_URL: ${USER_SERVICE_URL}
+      ORDER_SERVICE_URL: ${ORDER_SERVICE_URL}
+      PAYMENT_SERVICE_URL: ${PAYMENT_SERVICE_URL}
+    volumes:
+      - ./backend/delivery:/app
+      - ./backend/delivery/node_modules:/app/node_modules
+      - ./backend/delivery/.pnpm-store:/app/.pnpm-store
+      - ./backend/delivery/logs:/app/logs
+    command: sh -c "CI=true pnpm install --force && pnpm dev"
+
+  order:
+    build:
+      context: ./backend/order
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    env_file:
+      - .env
+    environment:
+      PORT: 3002
+      NODE_ENV: ${NODE_ENV}
+      FRONTEND_URL: ${FRONTEND_URL}
+      USER_SERVICE_URL: ${USER_SERVICE_URL}
+      PRODUCT_SERVICE_URL: ${PRODUCT_SERVICE_URL}
+      PAYMENT_SERVICE_URL: ${PAYMENT_SERVICE_URL}
+      DELIVERY_SERVICE_URL: ${DELIVERY_SERVICE_URL}
+    volumes:
+      - ./backend/order:/app
+      - ./backend/order/node_modules:/app/node_modules
+      - ./backend/order/.pnpm-store:/app/.pnpm-store
+      - ./backend/order/logs:/app/logs
+    command: sh -c "CI=true pnpm install --force && pnpm dev"
+
+  user:
+    build:
+      context: ./backend/user
+      dockerfile: Dockerfile
+    ports:
+      - "3003:3003"
+    env_file:
+      - .env
+    environment:
+      PORT: 3003
+      NODE_ENV: ${NODE_ENV}
+      DATABASE_URL: ${USER_DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      API_URL: ${USER_SERVICE_URL}
+      USER_PUBLIC_URL: ${USER_PUBLIC_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID}
+      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend/user:/app
+      - ./backend/user/node_modules:/app/node_modules
+      - ./backend/user/.pnpm-store:/app/.pnpm-store
+      - ./backend/user/logs:/app/logs
+    command: sh -c "CI=true pnpm install --force && pnpm db:migrate && pnpm dev"
+
+  chat:
+    build:
+      context: ./backend/chat
+      dockerfile: Dockerfile
+    ports:
+      - "3006:3006"
+    env_file:
+      - .env
+    environment:
+      PORT: 3006
+      NODE_ENV: ${NODE_ENV}
+      FRONTEND_URL: ${FRONTEND_URL}
+    volumes:
+      - ./backend/chat:/app
+      - ./backend/chat/node_modules:/app/node_modules
+      - ./backend/chat/.pnpm-store:/app/.pnpm-store
+      - ./backend/chat/logs:/app/logs
+    command: sh -c "CI=true pnpm install --force && pnpm dev"
+
+  product:
+    build:
+      context: ./backend/product
+      dockerfile: Dockerfile
+    ports:
+      - "3004:3004"
+    env_file:
+      - .env
+    environment:
+      PORT: 3004
+      NODE_ENV: ${NODE_ENV}
+      DB_URL: ${PRODUCT_DB_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+      USER_SERVICE_URL: ${USER_SERVICE_URL}
+      ORDER_SERVICE_URL: ${ORDER_SERVICE_URL}
+    depends_on:
+      - mongodb
+    volumes:
+      - ./backend/product:/app
+      - ./backend/product/node_modules:/app/node_modules
+      - ./backend/product/.pnpm-store:/app/.pnpm-store
+      - ./backend/product/logs:/app/logs
+    command: sh -c "CI=true pnpm install --force && pnpm dev"
+
+  payment:
+    build:
+      context: ./backend/payment
+      dockerfile: Dockerfile
+    ports:
+      - "3005:3005"
+    env_file:
+      - .env
+    environment:
+      PORT: 3005
+      NODE_ENV: ${NODE_ENV}
+      DATABASE_URL: ${PAYMENT_DATABASE_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+      USER_SERVICE_URL: ${USER_SERVICE_URL}
+      ORDER_SERVICE_URL: ${ORDER_SERVICE_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend/payment:/app
+      - ./backend/payment/node_modules:/app/node_modules
+      - ./backend/payment/.pnpm-store:/app/.pnpm-store
+      - ./backend/payment/logs:/app/logs
+    command: sh -c "CI=true pnpm install --force && pnpm dev"
+
+volumes:
+  postgres_data:
+  mongodb_data:
+  # frontend_node_modules:
