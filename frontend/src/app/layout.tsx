@@ -16,11 +16,7 @@ export const metadata: Metadata = {
   description: "Star Tech - Electronics & Gadgets",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({children}: Readonly<{children: React.ReactNode}>) {
   return (
     <html lang="en" className={cn("sans-serif", inter.variable)}>
       <body className="flex min-h-screen flex-col">
