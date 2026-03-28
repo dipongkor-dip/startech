@@ -14,11 +14,18 @@ export const env = {
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
   facebookAppId: process.env.FACEBOOK_APP_ID || '',
   facebookAppSecret: process.env.FACEBOOK_APP_SECRET || '',
-  smtpHost: process.env.SMTP_HOST || '',
-  smtpPort: parseInt(process.env.SMTP_PORT || '587', 10),
-  smtpSecure: (process.env.SMTP_SECURE || 'false') === 'true',
-  smtpUser: process.env.SMTP_USER || '',
-  smtpPass: process.env.SMTP_PASS || '',
-  smtpFrom: process.env.SMTP_FROM || 'no-reply@startech.local',
   smsGatewayDomain: process.env.SMS_GATEWAY_DOMAIN || '',
+  
+  nodemailer: {
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASS || '',
+    smtpFrom: process.env.SMTP_FROM || 'no-reply@startech.local',
+  },
+
+  redis_url: process.env.REDIS_URL || 'redis://localhost:6379',
+
+  superAdmin: {
+    email: process.env.SUPER_ADMIN_EMAIL || 'superadmin1@gmail.com',
+    password: process.env.SUPER_ADMIN_PASSWORD || 'admin123***'
+  }
 };

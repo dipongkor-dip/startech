@@ -2,9 +2,10 @@ import cors from 'cors';
 import express, { Application, Request, Response } from 'express';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
-import authRouter from './app/routes/auth';
+
 import { env } from './app/env';
-import './config/passport';
+import './app/config/passport';
+import router from './app/routes';
 
 const app: Application = express();
 
@@ -25,7 +26,7 @@ app.use(cookieParser());
 app.use(passport.initialize());
 
 // Routes
-app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/auth', router);
 
 // Welcome route
 app.get('/', (req: Request, res: Response) => {

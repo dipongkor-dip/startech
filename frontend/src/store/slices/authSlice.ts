@@ -48,20 +48,17 @@ export const fetchUser = createAsyncThunk<User | null, void, {rejectValue: strin
   return rejectWithValue("Failed to fetch user");
 });
 
-export const login = createAsyncThunk<{user: User}, {login: string; password: string}, {rejectValue: string}>(
-  "auth/login",
-  async (credentials, {rejectWithValue}) => {
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      credentials: "include",
-      body: JSON.stringify(credentials),
-    });
-    const data = await res.json();
-    if (!res.ok) return rejectWithValue(data.error || "Login failed");
-    return {user: data.user};
-  },
-);
+export const login = createAsyncThunk<{user: User}, {login: string; password: string}, {rejectValue: string}>("auth/login", async (credentials, {rejectWithValue}) => {
+  const res = await fetch("/api/auth/login", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    credentials: "include",
+    body: JSON.stringify(credentials),
+  });
+  const data = await res.json();
+  if (!res.ok) return rejectWithValue(data.error || "Login failed");
+  return {user: data.user};
+});
 
 export const register = createAsyncThunk<{user: User; requiresOtpVerification?: boolean}, {email?: string; phone?: string; password: string; name?: string}, {rejectValue: string}>(
   "auth/register",
@@ -92,18 +89,15 @@ export const logout = createAsyncThunk<void, void, {rejectValue: string}>("auth/
   if (!res.ok) return rejectWithValue("Logout failed");
 });
 
-export const setCookiesFromOAuth = createAsyncThunk<void, {accessToken: string; refreshToken: string}, {rejectValue: string}>(
-  "auth/setCookiesFromOAuth",
-  async (tokens, {rejectWithValue}) => {
-    const res = await fetch("/api/auth/set-cookies", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      credentials: "include",
-      body: JSON.stringify(tokens),
-    });
-    if (!res.ok) return rejectWithValue("Failed to set session");
-  },
-);
+export const setCookiesFromOAuth = createAsyncThunk<void, {accessToken: string; refreshToken: string}, {rejectValue: string}>("auth/setCookiesFromOAuth", async (tokens, {rejectWithValue}) => {
+  const res = await fetch("/api/auth/set-cookies", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    credentials: "include",
+    body: JSON.stringify(tokens),
+  });
+  if (!res.ok) return rejectWithValue("Failed to set session");
+});
 
 const authSlice = createSlice({
   name: "auth",
