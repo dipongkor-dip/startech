@@ -130,4 +130,21 @@ const me = catchAsync(async (req: AuthenticatedRequest, res: Response, next: Nex
   }
 });
 
-export const userController = {login, register, verifyOtp, sendOtp, me};
+const changePassword = catchAsync(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const {currentPassword, newPassword} = req.body;
+  const {userId} = req.token as JwtPayload;
+
+  if (!currentPassword || !newPassword) {
+    res.status(status.BAD_REQUEST).json({success: false, message: "Current password and new password are required"});
+    return;
+  }
+
+  try {
+    await userService.changePassword(userId, currentPassword, newPassword);
+    res.status(status.OK).json({success: true, message: "Password changed successfully"});
+  } catch (error) {
+    next(error);
+  }
+});
+
+export const userController = {login, register, verifyOtp, sendOtp, me, changePassword};

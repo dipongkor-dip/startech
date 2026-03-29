@@ -83,41 +83,49 @@ export function CategoryMegaMenu({mobileSidebarOpen: mobileSidebarOpenProp, onMo
             <SidebarGroup>
               <SidebarGroupLabel className="text-sm font-semibold text-sidebar-foreground">Categories</SidebarGroupLabel>
               <SidebarGroupContent>
-                <SidebarMenu>
+                <div className="space-y-0">
                   {NAV_CATEGORIES.map((category) => (
-                    <SidebarMenuItem key={category.label}>
-                      <SidebarMenuButton
+                    <div key={category.label} className="border-b border-sidebar-border last:border-b-0">
+                      <button
+                        type="button"
                         onClick={() => setOpenMobileCategory((prev) => (prev === category.label ? null : category.label))}
-                        className="justify-between"
+                        className="flex w-full items-center justify-between gap-2 px-3 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
                       >
                         <span>{category.label}</span>
                         <ChevronDownIcon className={cn("size-4 transition-transform", openMobileCategory === category.label ? "rotate-180" : "")} />
-                      </SidebarMenuButton>
+                      </button>
                       {openMobileCategory === category.label ? (
-                        <SidebarMenuSub>
+                        <div className="ml-4 space-y-1">
                           {category.items.map((item) => (
-                            <SidebarMenuSubItem key={`${category.label}-${item.label}`}>
-                              <SidebarMenuSubButton render={<Link href={item.href} />} onClick={() => setMobileSidebarOpen(false)}>
+                            <div key={`${category.label}-${item.label}`}>
+                              <Link 
+                                href={item.href} 
+                                onClick={() => setMobileSidebarOpen(false)}
+                                className="block px-2 py-1 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded"
+                              >
                                 {item.label}
-                              </SidebarMenuSubButton>
+                              </Link>
                               {item.sub && item.sub.length > 0 ? (
-                                <SidebarMenuSub className="ml-2">
+                                <div className="ml-2 space-y-1">
                                   {item.sub.map((subItem) => (
-                                    <SidebarMenuSubItem key={subItem.href}>
-                                      <SidebarMenuSubButton render={<Link href={subItem.href} />} onClick={() => setMobileSidebarOpen(false)}>
-                                        {subItem.label}
-                                      </SidebarMenuSubButton>
-                                    </SidebarMenuSubItem>
+                                    <Link 
+                                      key={subItem.href}
+                                      href={subItem.href} 
+                                      onClick={() => setMobileSidebarOpen(false)}
+                                      className="block px-2 py-1 text-xs text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded"
+                                    >
+                                      {subItem.label}
+                                    </Link>
                                   ))}
-                                </SidebarMenuSub>
+                                </div>
                               ) : null}
-                            </SidebarMenuSubItem>
+                            </div>
                           ))}
-                        </SidebarMenuSub>
+                        </div>
                       ) : null}
-                    </SidebarMenuItem>
+                    </div>
                   ))}
-                </SidebarMenu>
+                </div>
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>

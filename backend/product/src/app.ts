@@ -1,6 +1,8 @@
 import cors from "cors";
 import express, {Application, Request, Response} from "express";
 import {routes} from "./app/routes";
+import env from "./app/env";
+
 
 const app: Application = express();
 
@@ -8,7 +10,7 @@ const app: Application = express();
 app.use(
   cors({
     credentials: true,
-    origin: "http://localhost:3000",
+    origin: env.corsOrigin,
   }),
 );
 

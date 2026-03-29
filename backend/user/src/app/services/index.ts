@@ -113,4 +113,30 @@ const getMe = async (userId: string) => {
   return {profile, role: user.role};
 };
 
-export const userService = {register, verifyOtp, sendOtpUserCheck, login, getMe};
+const changePassword = async (userId: string, currentPassword: string, newPassword: string) => {
+  const user = await prisma.user.findUnique({where: {id: userId}});
+
+  if (!user || !user.password) {
+    throw new ServerError(status.NOT_FOUND, "User not found");
+  }
+
+  // Verify current password
+  const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+  if (!isCurrentPasswordValid) {
+    throw new ServerError(status.UNAUTHORIZED, "Current password is incorrect");
+  }
+
+  // Hash new password
+  const hashedNewPassword = await bcrypt.hash(newPassword, 12);
+
+  // Update password and reset needPasswordReset flag
+  await prisma.user.update({
+    where: {id: userId},
+    data: {
+      password: hashedNewPassword,
+      needPasswordReset: false,
+    },
+  });
+};
+
+export const userService = {register, verifyOtp, sendOtpUserCheck, login, getMe, changePassword};

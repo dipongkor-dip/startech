@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getApiUrl, COOKIE_OPTIONS } from '@/lib/api';
+import { setCookie } from '@/utils/serverCookie';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,10 +15,12 @@ export async function POST(request: NextRequest) {
     if (!res.ok) {
       return NextResponse.json(data, { status: res.status });
     }
-    const response = NextResponse.json({ user: data.user });
-    response.cookies.set('accessToken', data.accessToken, { ...COOKIE_OPTIONS, maxAge: 60 * 15 }); // 15 min
-    response.cookies.set('refreshToken', data.refreshToken, COOKIE_OPTIONS);
-    return response;
+    
+    // Set cookies using serverCookie.ts
+    setCookie('accessToken', data.accessToken, { ...COOKIE_OPTIONS, maxAge: 60 * 15 }); // 15 min
+    setCookie('refreshToken', data.refreshToken, COOKIE_OPTIONS);
+    
+    return NextResponse.json({ user: data.user, isValidated: data.isValidated, needPasswordReset: data.needPasswordReset });
   } catch (error) {
     return NextResponse.json({ error: 'Login failed' }, { status: 500 });
   }

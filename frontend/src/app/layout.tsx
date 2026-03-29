@@ -4,12 +4,11 @@ import {StoreProvider} from "@/providers/StoreProvider";
 import {AuthProvider} from "@/providers/AuthProvider";
 import {ThemeProviderWrapper} from "@/providers/ThemeProviderWrapper";
 import {Inter} from "next/font/google";
-import {cn} from "@/lib/utils";
 import {TooltipProvider} from "@/components/ui/tooltip";
 import {Toaster} from "@/components/ui/sonner";
 import {SiteChrome} from "@/components/SiteChrome";
 
-const inter = Inter({subsets: ["greek-ext"], variable: "--sans-serif"});
+const inter = Inter({subsets: ["latin"], variable: "--font-sans"});
 
 export const metadata: Metadata = {
   title: "Star Tech",
@@ -18,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({children}: Readonly<{children: React.ReactNode}>) {
   return (
-    <html lang="en" className={cn("sans-serif", inter.variable)}>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <body className="flex min-h-screen flex-col">
         <ThemeProviderWrapper>
           <StoreProvider>

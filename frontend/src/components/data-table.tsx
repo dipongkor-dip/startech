@@ -862,7 +862,7 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
         <DrawerFooter>
           <Button>Submit</Button>
           <DrawerClose asChild>
-            <Button variant="outline">Close</Button>
+            <Button variant="outline" type="button">Close</Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>

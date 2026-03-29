@@ -3,7 +3,6 @@
 import * as React from "react";
 import {useTheme} from "next-themes";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
-import {Button} from "@/components/ui/button";
 import {Sun, Moon, Laptop} from "lucide-react";
 
 export function ThemeChanger() {
@@ -14,18 +13,23 @@ export function ThemeChanger() {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  if (!mounted) {
+    // Return a placeholder button with same dimensions to prevent layout shift
+    return (
+      <div className="rounded-md border-none p-2">
+        <div className="w-4 h-4" />
+      </div>
+    );
+  }
 
   // Always show Sun or Moon depending on resolved theme
   const show = resolvedTheme;
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
-        <Button variant="outline" className="rounded-md border-none">
-          {show === "light" && <Sun />}
-          {show === "dark" && <Moon />}
-        </Button>
+      <DropdownMenuTrigger className="rounded-md border-none p-2 bg-accent hover:text-accent-foreground">
+        {show === "light" && <Sun />}
+        {show === "dark" && <Moon />}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="">
         <DropdownMenuItem onClick={() => setTheme("light")}>

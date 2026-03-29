@@ -48,7 +48,7 @@ export const fetchUser = createAsyncThunk<User | null, void, {rejectValue: strin
   return rejectWithValue("Failed to fetch user");
 });
 
-export const login = createAsyncThunk<{user: User}, {login: string; password: string}, {rejectValue: string}>("auth/login", async (credentials, {rejectWithValue}) => {
+export const login = createAsyncThunk<{user: User; isValidated: boolean; needPasswordReset: boolean}, {login: string; password: string}, {rejectValue: string}>("auth/login", async (credentials, {rejectWithValue}) => {
   const res = await fetch("/api/auth/login", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
@@ -56,18 +56,18 @@ export const login = createAsyncThunk<{user: User}, {login: string; password: st
     body: JSON.stringify(credentials),
   });
   const data = await res.json();
-  if (!res.ok) return rejectWithValue(data.error || "Login failed");
-  return {user: data.user};
+  if (!res.ok) return rejectWithValue(data.message || data.error || "Login failed");
+  return {user: data.user, isValidated: data.isValidated, needPasswordReset: data.needPasswordReset};
 });
 
-export const register = createAsyncThunk<{user: User; requiresOtpVerification?: boolean}, {email?: string; phone?: string; password: string; name?: string}, {rejectValue: string}>(
+export const register = createAsyncThunk<{message: string}, {email?: string; phone?: string; password: string; name?: string}, {rejectValue: string}>(
   "auth/register",
   async (body, {rejectWithValue}) => {
     const payload = {
       email: body.email || undefined,
       phone: body.phone || undefined,
       password: body.password,
-      profile: body.name ? {name: body.name} : undefined,
+      name: body.name,
     };
     const res = await fetch("/api/auth/register", {
       method: "POST",
@@ -76,8 +76,8 @@ export const register = createAsyncThunk<{user: User; requiresOtpVerification?: 
       body: JSON.stringify(payload),
     });
     const data = await res.json();
-    if (!res.ok) return rejectWithValue(data.error || "Registration failed");
-    return {user: data.user, requiresOtpVerification: data.requiresOtpVerification};
+    if (!res.ok) return rejectWithValue(data.message || data.error || "Registration failed");
+    return {message: data.message};
   },
 );
 
@@ -140,10 +140,10 @@ const authSlice = createSlice({
       .addCase(register.pending, (state) => {
         state.loading = true;
       })
-      .addCase(register.fulfilled, (state, action) => {
+      .addCase(register.fulfilled, (state) => {
         state.loading = false;
-        state.user = action.payload.user;
-        state.isAuthenticated = !action.payload.requiresOtpVerification;
+        // Registration successful but user needs OTP verification
+        // Don't set user as authenticated yet
       })
       .addCase(register.rejected, (state) => {
         state.loading = false;

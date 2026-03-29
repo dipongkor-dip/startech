@@ -50,7 +50,7 @@ services:
     depends_on:
       - user
       - chat
-    command: sh -c "CI=true pnpm install --force && pnpm exec next dev --hostname 0.0.0.0 --port 3000"
+    command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm exec next dev --hostname 0.0.0.0 --port 3000"
 
   delivery:
     build:

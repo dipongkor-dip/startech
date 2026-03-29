@@ -9,7 +9,7 @@ const app: Application = express();
 app.use(
   cors({
     credentials: true,
-    origin: env.corsOrigin as string, // TODO: Change to the frontend URL
+    origin: env.corsOrigin,
   })
 );
 

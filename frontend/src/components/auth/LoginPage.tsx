@@ -15,11 +15,16 @@ export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isNavigatingToOtp, setIsNavigatingToOtp] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<"login" | "register">("login");
   const [loginValue, setLoginValue] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated && !isNavigatingToOtp) {
@@ -46,31 +51,48 @@ export default function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    
     try {
       if (mode === "login") {
-        await dispatch(
-          login({
-            login: loginValue.trim(),
-            password,
-          }),
-        ).unwrap();
-        router.push("/dashboard");
+        // Login flow using Redux - cookies are handled by API route
+        const result = await dispatch(login({
+          login: loginValue,
+          password,
+        })).unwrap();
+        
+        // Handle login response based on validation status
+        if (!result.isValidated) {
+          // User needs OTP verification
+          const identifier = loginValue.includes('@') ? loginValue : undefined;
+          const phone = !loginValue.includes('@') ? loginValue : undefined;
+          router.push(`/otp-verification?type=${identifier ? 'email' : 'phone'}&identifier=${identifier || phone}`);
+          return;
+        }
+        
+        if (result.needPasswordReset) {
+          // User needs password reset
+          router.push('/password-change');
+          return;
+        }
+        
+        // Normal login - Redux handles setting user state and cookies via API
+        router.replace('/dashboard');
       } else {
-        await dispatch(
-          register({
-            email: loginValue.includes("@") ? loginValue.trim() : undefined,
-            phone: loginValue.includes("@") ? undefined : loginValue.trim(),
-            password,
-            name: name || undefined,
-          }),
-        ).unwrap();
-        setIsNavigatingToOtp(true);
-        const identifier = encodeURIComponent(loginValue.trim());
-        const idType = loginValue.includes("@") ? "email" : "phone";
-        router.push(`/otp-verification?type=${idType}&identifier=${identifier}`);
+        // Register flow using Redux - cookies are handled by API route
+        await dispatch(register({
+          email: loginValue.includes('@') ? loginValue : undefined,
+          phone: !loginValue.includes('@') ? loginValue : undefined,
+          password,
+          name,
+        })).unwrap();
+        
+        // Registration successful - redirect to OTP verification
+        const identifier = loginValue.includes('@') ? loginValue : undefined;
+        const phone = !loginValue.includes('@') ? loginValue : undefined;
+        router.push(`/otp-verification?type=${identifier ? 'email' : 'phone'}&identifier=${identifier || phone}`);
       }
-    } catch (err) {
-      setError(typeof err === "string" ? err : "Something went wrong");
+    } catch (error: any) {
+      setError(error || (mode === "login" ? "Login failed" : "Registration failed"));
     }
   };
 
@@ -118,8 +140,8 @@ export default function LoginForm() {
             required
           />
         </div>
-        <Button type="submit" disabled={loading} className="w-full py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50">
-          {loading ? "Please wait..." : mode === "login" ? "Login" : "Register"}
+        <Button type="submit" disabled={mounted && loading} className="w-full py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50">
+          {mounted && loading ? "Please wait..." : mode === "login" ? "Login" : "Register"}
         </Button>
       </form>
 
