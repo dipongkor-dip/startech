@@ -37,31 +37,26 @@ const register = async (email: string | null, phone: string | null, password: st
 };
 
 const sendOtpUserCheck = async (email: string | null, phone: string | null) => {
-  if (!email && !phone) {
+  if (email) {
+    await prisma.user.findUniqueOrThrow({where: {email}});
+  } else if (phone) {
+    await prisma.user.findUniqueOrThrow({where: {phone}});
+  } else {
     throw new ServerError(status.BAD_REQUEST, "Email or phone is required");
   }
-
-  const user = await prisma.user.findFirst({
-    where: {
-      OR: [...(email ? [{email}] : []), ...(phone ? [{phone}] : [])],
-    },
-  });
-
-  if (!user) throw new ServerError(status.ALREADY_REPORTED, "User not found");
 };
 
 const verifyOtp = async (email: string | null, phone: string | null) => {
-  if ((!email && !phone)) {
-    throw new ServerError(status.NON_AUTHORITATIVE_INFORMATION, "Email or phone and OTP are required");
+  let user;
+
+  if (email) {
+    user = await prisma.user.findUniqueOrThrow({where: {email}});
+  } else if (phone) {
+    user = await prisma.user.findUniqueOrThrow({where: {phone}});
+  } else {
+    throw new ServerError(status.BAD_REQUEST, "Email or phone is required");
   }
 
-  const user = await prisma.user.findFirst({
-    where: {
-      OR: [...(email ? [{email}] : []), ...(phone ? [{phone}] : [])],
-    },
-  });
-
-  if (!user) throw new ServerError(status.FORBIDDEN, "User not found");
   await prisma.user.update({
     where: {id: user.id},
     data: {isValidated: true},
@@ -90,12 +85,12 @@ const login = async (email: string | null, phone: string | null, password: strin
   }
   const accessToken = signAccessToken(user.id, user.role);
   const refreshToken = signRefreshToken(user.id, user.role);
-  return {accessToken, refreshToken};
+  return {accessToken, refreshToken, isValidated: user.isValidated, needPasswordReset: user.needPasswordReset};
 };
 
 // GET /auth/me
 const getMe = async (userId: string) => {
-  const user = await prisma.user.findUnique({where: {id: userId}});
+  const user = await prisma.user.findUnique({where: {id: userId, isValidated: true, needPasswordReset: false}});
 
   if (!user) {
     throw new ServerError(status.FORBIDDEN, "User not found");

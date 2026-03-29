@@ -1,12 +1,14 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { logout } from '@/store/slices/authSlice';
+import Link from "next/link";
+import {useAppDispatch, useAppSelector} from "@/store/hooks";
+import {logout} from "@/store/slices/authSlice";
 
 export default function Home() {
   const dispatch = useAppDispatch();
-  const { user, isAuthenticated } = useAppSelector((s) => s.auth);
+  const {user, isAuthenticated} = useAppSelector((s) => s.auth);
+
+  console.log("user", user);
 
   const handleLogout = () => {
     dispatch(logout());

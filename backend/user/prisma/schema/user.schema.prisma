@@ -1,10 +1,10 @@
 enum UserRole {
-  superAdmin
-  admin
-  productManager
-  deliveryBoy
-  customerSupportManager
-  customer
+  SUPER_ADMIN
+  ADMIN
+  PRODUCT_MANAGER
+  DELIVERY_BOY
+  CUSTOMER_SUPPORT_MANAGER
+  CUSTOMER
 }
 
 enum ProviderType {
@@ -41,7 +41,7 @@ model User {
   authProvider      AuthProvider[]
   isValidated       Boolean        @default(false)
   status            Status         @default(active)
-  role              UserRole       @default(customer)
+  role              UserRole       @default(CUSTOMER)
   needPasswordReset Boolean        @default(false)
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt

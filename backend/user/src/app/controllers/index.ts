@@ -1,7 +1,7 @@
 import {Request, Response, NextFunction} from "express";
 import {userService} from "../services";
 import status from "http-status";
-import {checkRateLimit, deleteOTP, getOTP, setOTP, setRateLimit} from "../config/redis";
+import {checkRateLimit, deleteOTP, getOTP, redisClient, setOTP, setRateLimit} from "../config/redis";
 import {sendOTPbyMail} from "../config/nodemailer";
 import {generateOtp} from "../helper/otp";
 import {JwtPayload} from "jsonwebtoken";
@@ -11,15 +11,15 @@ import catchAsync from "../utils/catchAsync";
 const login = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const {email, phone, password} = req.body;
 
-  if ((!email && phone) || (email && !phone) || !password) {
-    res.status(status.BAD_REQUEST).json({success: false, message: "Login and password required"});
+  if ((!email && !phone) || !password) {
+    res.status(status.BAD_REQUEST).json({success: false, message: "Email or Phone and password required"});
     return;
   }
 
   try {
-    const {accessToken, refreshToken} = await userService.login(email, phone, password);
+    const {accessToken, refreshToken, isValidated, needPasswordReset} = await userService.login(email, phone, password);
 
-    res.status(status.OK).json({success: true, message: "Login successful", accessToken, refreshToken});
+    res.status(status.OK).json({success: true, message: "Login successful", accessToken, refreshToken, isValidated, needPasswordReset});
   } catch (error) {
     next(error);
   }
@@ -28,7 +28,7 @@ const login = catchAsync(async (req: Request, res: Response, next: NextFunction)
 const register = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const {email, phone, password, name} = req.body;
 
-  const userName = name ? name : email ? email.match(/^([a-zA-Z]+)(?=[0-9]*@)/)?.[1] : "User";
+  const userName = name || email?.match(/^([a-zA-Z]+)(?=[0-9]*@)/)?.[1] || "User";
 
   try {
     await userService.register(email, phone, password, userName);
@@ -46,15 +46,8 @@ const sendOtp = catchAsync(async (req: Request, res: Response, next: NextFunctio
   try {
     await userService.sendOtpUserCheck(email, phone);
 
-    let otpKey: string;
-    if (email) {
-      otpKey = `otp:${email}`;
-    } else if (phone) {
-      otpKey = `otp:${phone}`;
-    } else {
-      res.status(status.BAD_REQUEST).json({success: false, message: "Email or phone is required"});
-      return;
-    }
+    const otpKey = email ? `otp:${email}` : `otp:${phone}`;
+    const rateLimitKey = email ? `rate:${email}` : `rate:${phone}`;
 
     const isRateLimited = await checkRateLimit(otpKey);
     if (isRateLimited) {
@@ -62,14 +55,14 @@ const sendOtp = catchAsync(async (req: Request, res: Response, next: NextFunctio
       return;
     }
 
-    await setOTP(otpKey, otp, 5 * 60); // OTP expires in 5 minutes
+    // Store OTP for 5 minutes
+    await setOTP(otpKey, otp, 5 * 60);
 
-    await setRateLimit(otpKey, 60); // Rate limit for 1 minute
-
-    // sendMail or sendSMS with the OTP here
+    // Rate limit for 1 minute
+    await setRateLimit(rateLimitKey, 60);
 
     if (email) {
-      await sendOTPbyMail(email, otp);
+      await sendOTPbyMail(email as string, otp);
     } else {
       // Implement send SMS logic here using your preferred SMS gateway
     }
