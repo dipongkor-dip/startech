@@ -1,6 +1,6 @@
 import {UserRole} from "@prisma/client";
-import {prisma} from "../config/database";
-import {env} from "../env";
+import {prisma} from "../config/database.js";
+import {env} from "../env/index.js";
 import bcrypt from "bcryptjs";
 
 const superUser = async () => {
@@ -20,7 +20,7 @@ const superUser = async () => {
       data: {
         email: env.superAdmin.email,
         password: hashedPassword,
-        role: UserRole.superAdmin,
+        role: UserRole.SUPER_ADMIN,
         needPasswordReset: false,
         isValidated: true,
       },

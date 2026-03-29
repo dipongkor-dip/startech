@@ -1,5 +1,5 @@
 import {createClient, type RedisClientType} from "redis";
-import {env} from "../env";
+import {env} from "../env/index.js";
 
 export const redisClient: RedisClientType = createClient({
   url: env.redis_url,

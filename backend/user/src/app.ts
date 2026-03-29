@@ -3,10 +3,10 @@ import express, {Application, Request, Response} from "express";
 import cookieParser from "cookie-parser";
 import passport from "passport";
 
-import {env} from "./app/env";
-import "./app/config/passport";
-import router from "./app/routes";
-import {globalError} from "./app/errors/globalError";
+import {env} from "./app/env/index.js";
+import "./app/config/passport.js";
+import router from "./app/routes/index.js";
+import {globalError} from "./app/errors/globalError.js";
 
 const app: Application = express();
 

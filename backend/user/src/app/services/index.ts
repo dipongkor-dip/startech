@@ -98,15 +98,15 @@ const getMe = async (userId: string) => {
 
   let profile;
 
-  if (user.role === UserRole.admin) {
+  if (user.role === UserRole.ADMIN) {
     profile = await prisma.admin.findUnique({where: {userId}});
-  } else if (user.role === UserRole.customer) {
+  } else if (user.role === UserRole.CUSTOMER) {
     profile = await prisma.customer.findUnique({where: {userId}});
-  } else if (user.role === UserRole.superAdmin) {
+  } else if (user.role === UserRole.SUPER_ADMIN) {
     profile = await prisma.superAdmin.findUnique({where: {userId}});
-  } else if (user.role === UserRole.customerSupportManager) {
+  } else if (user.role === UserRole.CUSTOMER_SUPPORT_MANAGER) {
     profile = await prisma.customerSupportManager.findUnique({where: {userId}});
-  } else if (user.role === UserRole.deliveryBoy) {
+  } else if (user.role === UserRole.DELIVERY_BOY) {
     profile = await prisma.deliveryBoy.findUnique({where: {userId}});
   }
 

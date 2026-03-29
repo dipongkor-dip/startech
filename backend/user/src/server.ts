@@ -1,9 +1,9 @@
 import {Server} from "http";
-import app from "./app";
-import {env} from "./app/env";
-import {connectDatabase, disconnectDatabase} from "./app/config/database";
-import {connectRedis} from "./app/config/redis";
-import superUser from "./app/utils/superUser";
+import app from "./app.js";
+import {env} from "./app/env/index.js";
+import {connectDatabase, disconnectDatabase} from "./app/config/database.js";
+import {connectRedis} from "./app/config/redis.js";
+import superUser from "./app/utils/superUser.js";
 
 let server: Server;
 

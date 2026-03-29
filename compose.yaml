@@ -72,7 +72,7 @@ services:
       - ./backend/delivery/node_modules:/app/node_modules
       - ./backend/delivery/.pnpm-store:/app/.pnpm-store
       - ./backend/delivery/logs:/app/logs
-    command: sh -c "CI=true pnpm install --force && pnpm dev"
+    command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm dev"
 
   order:
     build:
@@ -95,7 +95,7 @@ services:
       - ./backend/order/node_modules:/app/node_modules
       - ./backend/order/.pnpm-store:/app/.pnpm-store
       - ./backend/order/logs:/app/logs
-    command: sh -c "CI=true pnpm install --force && pnpm dev"
+    command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm dev"
 
   user:
     build:
@@ -129,7 +129,7 @@ services:
       - ./backend/user/node_modules:/app/node_modules
       - ./backend/user/.pnpm-store:/app/.pnpm-store
       - ./backend/user/logs:/app/logs
-    command: sh -c "CI=true pnpm install --force && pnpm db:migrate && pnpm dev"
+    command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm db:migrate && pnpm dev"
 
   chat:
     build:
@@ -148,7 +148,7 @@ services:
       - ./backend/chat/node_modules:/app/node_modules
       - ./backend/chat/.pnpm-store:/app/.pnpm-store
       - ./backend/chat/logs:/app/logs
-    command: sh -c "CI=true pnpm install --force && pnpm dev"
+    command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm dev"
 
   product:
     build:
@@ -172,7 +172,7 @@ services:
       - ./backend/product/node_modules:/app/node_modules
       - ./backend/product/.pnpm-store:/app/.pnpm-store
       - ./backend/product/logs:/app/logs
-    command: sh -c "CI=true pnpm install --force && pnpm dev"
+    command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm dev"
 
   payment:
     build:
@@ -197,7 +197,7 @@ services:
       - ./backend/payment/node_modules:/app/node_modules
       - ./backend/payment/.pnpm-store:/app/.pnpm-store
       - ./backend/payment/logs:/app/logs
-    command: sh -c "CI=true pnpm install --force && pnpm dev"
+    command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm dev"
 
 volumes:
   postgres_data:
