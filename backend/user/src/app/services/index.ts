@@ -2,11 +2,13 @@ import bcrypt from "bcryptjs";
 import {prisma} from "../config/database";
 import {signAccessToken, signRefreshToken} from "../helper/jwt";
 import {UserRole} from "@prisma/client";
+import ServerError from "../errors/ServerError";
+import status from "http-status";
 
 // POST /auth/register - email or phone + password
 const register = async (email: string | null, phone: string | null, password: string, name: string) => {
-  if ((email && !phone) || (!email && phone) || !password) {
-    throw new Error("Email or phone and password are required");
+  if ((!email && !phone) || !password) {
+    throw new ServerError(status.BAD_REQUEST, "Email or phone and password are required");
   }
 
   const existingUser = await prisma.user.findFirst({
@@ -15,8 +17,8 @@ const register = async (email: string | null, phone: string | null, password: st
     },
   });
 
-  if (existingUser?.phone || existingUser?.email) {
-    throw new Error(`User with this ${existingUser.email ? "email" : "phone"} already exists`);
+  if (existingUser) {
+    throw new ServerError(status.BAD_REQUEST, `User with this ${existingUser.email ? "email" : "phone"} already exists`);
   }
 
   const hashedPassword = await bcrypt.hash(password, 12);
@@ -36,7 +38,7 @@ const register = async (email: string | null, phone: string | null, password: st
 
 const sendOtpUserCheck = async (email: string | null, phone: string | null) => {
   if (!email && !phone) {
-    throw new Error("Email or phone is required");
+    throw new ServerError(status.BAD_REQUEST, "Email or phone is required");
   }
 
   const user = await prisma.user.findFirst({
@@ -45,12 +47,12 @@ const sendOtpUserCheck = async (email: string | null, phone: string | null) => {
     },
   });
 
-  if (!user) throw new Error("User not found");
+  if (!user) throw new ServerError(status.ALREADY_REPORTED, "User not found");
 };
 
 const verifyOtp = async (email: string | null, phone: string | null) => {
-  if ((email && !phone) || (!email && phone)) {
-    throw new Error("Email or phone and OTP are required");
+  if ((!email && !phone)) {
+    throw new ServerError(status.NON_AUTHORITATIVE_INFORMATION, "Email or phone and OTP are required");
   }
 
   const user = await prisma.user.findFirst({
@@ -59,7 +61,7 @@ const verifyOtp = async (email: string | null, phone: string | null) => {
     },
   });
 
-  if (!user) throw new Error("User not found");
+  if (!user) throw new ServerError(status.FORBIDDEN, "User not found");
   await prisma.user.update({
     where: {id: user.id},
     data: {isValidated: true},
@@ -79,12 +81,12 @@ const login = async (email: string | null, phone: string | null, password: strin
   });
 
   if (!user || !user.password) {
-    throw new Error("Invalid credentials");
+    throw new ServerError(status.NON_AUTHORITATIVE_INFORMATION, "Invalid credentials");
   }
 
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) {
-    throw new Error("Invalid credentials");
+    throw new ServerError(status.UNAUTHORIZED, "Invalid credentials");
   }
   const accessToken = signAccessToken(user.id, user.role);
   const refreshToken = signRefreshToken(user.id, user.role);
@@ -96,7 +98,7 @@ const getMe = async (userId: string) => {
   const user = await prisma.user.findUnique({where: {id: userId}});
 
   if (!user) {
-    throw new Error("User not found");
+    throw new ServerError(status.FORBIDDEN, "User not found");
   }
 
   let profile;

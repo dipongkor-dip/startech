@@ -6,8 +6,9 @@ import {sendOTPbyMail} from "../config/nodemailer";
 import {generateOtp} from "../helper/otp";
 import {JwtPayload} from "jsonwebtoken";
 import {AuthenticatedRequest} from "../middleware/auth";
+import catchAsync from "../utils/catchAsync";
 
-const login = async (req: Request, res: Response) => {
+const login = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const {email, phone, password} = req.body;
 
   if ((!email && phone) || (email && !phone) || !password) {
@@ -20,11 +21,11 @@ const login = async (req: Request, res: Response) => {
 
     res.status(status.OK).json({success: true, message: "Login successful", accessToken, refreshToken});
   } catch (error) {
-    res.status(status.UNAUTHORIZED).json({success: false, message: "Invalid credentials"});
+    next(error);
   }
-};
+});
 
-const register = async (req: Request, res: Response) => {
+const register = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const {email, phone, password, name} = req.body;
 
   const userName = name ? name : email ? email.match(/^([a-zA-Z]+)(?=[0-9]*@)/)?.[1] : "User";
@@ -32,13 +33,13 @@ const register = async (req: Request, res: Response) => {
   try {
     await userService.register(email, phone, password, userName);
 
-    res.status(status.CREATED).json({message: "Registration successful. Please verify your OTP."});
-  } catch (error) {
-    res.status(status.BAD_REQUEST).json({message: "Registration failed"});
+    res.status(status.CREATED).json({success: true, message: "Registration successful. Please verify your OTP."});
+  } catch (error: any) {
+    next(error);
   }
-};
+});
 
-const sendOtp = async (req: Request, res: Response) => {
+const sendOtp = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const {email, phone} = req.body;
   const otp = generateOtp();
 
@@ -75,11 +76,11 @@ const sendOtp = async (req: Request, res: Response) => {
 
     res.status(status.OK).json({success: true, message: `OTP sent to ${email ? "email" : "phone"}.`});
   } catch (error) {
-    res.status(status.BAD_REQUEST).json({success: false, message: "Failed to send OTP"});
+    next(error);
   }
-};
+});
 
-const verifyOtp = async (req: Request, res: Response) => {
+const verifyOtp = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const {email, phone, otp} = req.body;
 
   if (!otp) {
@@ -120,11 +121,11 @@ const verifyOtp = async (req: Request, res: Response) => {
       res.status(status.BAD_REQUEST).json({success: false, message: "Email or phone is required"});
     }
   } catch (error) {
-    res.status(status.BAD_REQUEST).json({success: false, message: "Failed to verify OTP"});
+    next(error);
   }
-};
+});
 
-const me = async (req: AuthenticatedRequest, res: Response) => {
+const me = catchAsync(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const {userId} = req.token as JwtPayload;
 
   try {
@@ -132,8 +133,8 @@ const me = async (req: AuthenticatedRequest, res: Response) => {
 
     res.status(status.OK).json({success: true, message: "User retrieved successfully", user});
   } catch (error) {
-    res.status(status.BAD_REQUEST).json({success: false, message: "Failed to fetch user details"});
+    next(error);
   }
-};
+});
 
 export const userController = {login, register, verifyOtp, sendOtp, me};
