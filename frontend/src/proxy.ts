@@ -11,22 +11,10 @@ const isPublicRoute = (pathname: string) => publicRoutes.some((route: string) =>
 
 export async function proxy(request: NextRequest) {
   const pathname = new URL(request.url).pathname
-  
-  // Handle CORS preflight requests
-  if (request.method === 'OPTIONS') {
-    return new NextResponse(JSON.stringify({}), {
-      status: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
-    })
-  }
 
   // Handle authentication redirects
   let userRole: UserRole | null = null
-  const accessToken = getCookie('accessToken')
+  const accessToken = await getCookie('accessToken')
 
   // If user has a valid token and tries to access auth routes, redirect to dashboard
   if (accessToken) {
@@ -34,8 +22,8 @@ export async function proxy(request: NextRequest) {
 
     if (typeof verifiedToken === "string") {
       // Token is invalid, clear cookies and redirect to login
-      deleteCookie('accessToken')
-      deleteCookie('refreshToken')
+      await deleteCookie('accessToken')
+      await deleteCookie('refreshToken')
       return NextResponse.redirect(new URL("/login", request.url))
     }
     
@@ -52,11 +40,9 @@ export async function proxy(request: NextRequest) {
     }
   }
   
-  // Add CORS headers to all responses and continue
-  return NextResponse.next()
+  // Continue with the request - don't return anything to let it pass through
 }
 
 export const config = {
   matcher: ['/api/:path*', '/login', '/forgot-password', '/otp-verification', '/password-change', '/dashboard/:path*'],
-  // The proxy function will be called for these routes
 }

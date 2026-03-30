@@ -1,6 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   allowedDevOrigins: ['127.0.0.1:3000', 'localhost:3000'],
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: '/api/binance/:path*',
+  //       destination: 'https://wallet.binance.com/:path*',
+  //     },
+  //   ];
+  // },
   async headers() {
     return [
       {
