@@ -1,0 +1,159 @@
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  PRODUCT_MANAGER
+  DELIVERY_BOY
+  CUSTOMER_SUPPORT_MANAGER
+  CUSTOMER
+}
+
+enum ProviderType {
+  google
+  facebook
+  local
+}
+
+enum Status {
+  active
+  inactive
+  banned
+}
+
+model AuthProvider {
+  id       String       @id @default(cuid())
+  userId   String
+  provider ProviderType @default(local)
+
+  providerId String   @default(cuid()) // Unique ID from the provider (e.g., Google sub, Facebook id  )
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("auth_providers")
+}
+
+model User {
+  id                String         @id @default(cuid())
+  phone             String?        @unique
+  email             String?        @unique
+  password          String?
+  credentials       Json? // For storing hashed password and salt for local auth
+  authProvider      AuthProvider[]
+  isValidated       Boolean        @default(false)
+  status            Status         @default(active)
+  role              UserRole       @default(CUSTOMER)
+  needPasswordReset Boolean        @default(false)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  customer Customer?
+  superAdmin SuperAdmin?
+  admin   Admin?
+  customerSupportManager CustomerSupportManager?
+  deliveryBoy DeliveryBoy?
+  productManager ProductManager?
+
+  @@map("users")
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  avatar    String?
+  division  String?
+  city      String?
+  upazila   String?
+  address   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("customers")
+}
+
+model SuperAdmin {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  avatar    String?
+  division  String?
+  city      String?
+  upazila   String?
+  address   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("super_admins")
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  avatar    String?
+  division  String?
+  city      String?
+  upazila   String?
+  address   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model CustomerSupportManager {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  avatar    String?
+  division  String?
+  city      String?
+  upazila   String?
+  address   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("customer_support_managers")
+}
+
+model DeliveryBoy {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  avatar    String?
+  division  String?
+  city      String?
+  upazila   String?
+  address   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("delivery_boys")
+}
+
+model ProductManager {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  avatar    String?
+  division  String?
+  city      String?
+  upazila   String?
+  address   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("product_managers")
+}
