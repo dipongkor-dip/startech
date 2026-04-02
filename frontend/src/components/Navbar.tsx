@@ -10,7 +10,7 @@ import {Gift, Cpu, MenuIcon, SearchIcon, ShoppingCartIcon} from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const {user, isAuthenticated} = useAppSelector((s) => s.auth);
+  const {isAuthenticated, initialized} = useAppSelector((s) => s.auth);
   const [query, setQuery] = useState("");
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -23,7 +23,7 @@ export default function Navbar() {
     <>
       {/* Top bar */}
       <header className="hidden bg-[var(--navbar-background)] xl:block">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-3 py-3">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 xl:px-0 px-3 py-3">
           <Link href="/" className="flex items-center gap-2">
             <span className="text-2xl font-bold text-indigo-500">Star Tech</span>
           </Link>
@@ -52,9 +52,9 @@ export default function Navbar() {
               <span>PC Builder</span>
             </Link>
 
-            {isAuthenticated && user ? (
+            {isAuthenticated && !initialized ? (
               <Link href="/dashboard" className="text-sm font-medium text-white cursor-pointer">
-                {user.profile?.name || user.email || "Account"}
+                Account
               </Link>
             ) : (
               <Link href="/login" className="px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700">
@@ -102,6 +102,7 @@ export default function Navbar() {
             </Link>
           </div>
         </div>
+
         {showMobileSearch ? (
           <div className="border-t border-white/10 px-3 pb-2">
             <input
@@ -116,7 +117,7 @@ export default function Navbar() {
       </div>
 
       {/* Sticky CategoryMegaMenu */}
-      <div className="z-40 shadow-md xl:sticky xl:top-0">
+      <div className="z-40 shadow-sm shadow-gray-300 dark:shadow-gray-800 xl:sticky xl:top-0">
         <CategoryMegaMenu mobileSidebarOpen={mobileSidebarOpen} onMobileSidebarOpenChange={setMobileSidebarOpen} />
       </div>
     </>

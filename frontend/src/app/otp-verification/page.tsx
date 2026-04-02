@@ -4,7 +4,7 @@ import {useMemo, useState} from "react";
 import Link from "next/link";
 import {useRouter, useSearchParams} from "next/navigation";
 import {useAppDispatch} from "@/store/hooks";
-import {fetchUser} from "@/store/slices/authSlice";
+import {fetchUser} from "@/store/slices/auth/api";
 
 export default function OtpVerificationPage() {
   const router = useRouter();

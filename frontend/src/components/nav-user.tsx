@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation"
 import { useAppDispatch } from "@/store/hooks"
-import { logout } from "@/store/slices/authSlice"
 import {
   Avatar,
   AvatarFallback,
@@ -24,6 +23,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { EllipsisVerticalIcon, CircleUserRoundIcon, CreditCardIcon, BellIcon, LogOutIcon } from "lucide-react"
+import { logout } from "@/store/slices/auth/api"
 
 export function NavUser({
   user,
@@ -105,7 +105,8 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
+            <DropdownMenuItem>
+            {/* <DropdownMenuItem onClick={handleLogout}> */}
               <LogOutIcon
               />
               Log out

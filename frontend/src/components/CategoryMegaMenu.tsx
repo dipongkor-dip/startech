@@ -10,12 +10,6 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import {Sheet, SheetContent} from "@/components/ui/sheet";
 
@@ -33,7 +27,7 @@ function SubFlyout({
   return (
     <div
       className={cn(
-        "absolute left-full top-0 z-50 min-w-[10rem] shadow-lg transition-all duration-150",
+        "absolute left-full top-0 z-50 min-w-[10rem] shadow-sm transition-all duration-150",
         isOpen ? "visible opacity-100" : "invisible opacity-0",
         "border bg-popover py-1 text-popover-foreground",
       )}
@@ -76,7 +70,7 @@ export function CategoryMegaMenu({mobileSidebarOpen: mobileSidebarOpenProp, onMo
   }, []);
 
   return (
-    <nav aria-label="Product categories" className="bg-card xl:border-y">
+    <nav aria-label="Product categories" className="bg-card">
       <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
         <SheetContent side="left" className="w-[18rem] border-r bg-sidebar p-0 text-sidebar-foreground sm:max-w-none">
           <SidebarContent>
@@ -132,7 +126,7 @@ export function CategoryMegaMenu({mobileSidebarOpen: mobileSidebarOpenProp, onMo
         </SheetContent>
       </Sheet>
       <div className="mx-auto max-w-7xl">
-        <ul className="hidden flex-wrap items-center px-3 xl:flex">
+        <ul className="hidden flex-wrap items-center xl:flex">
           {NAV_CATEGORIES.map((category) => (
             <li
               key={category.label}
@@ -155,7 +149,7 @@ export function CategoryMegaMenu({mobileSidebarOpen: mobileSidebarOpenProp, onMo
                   openCategory === category.label ? "visible opacity-100" : "invisible opacity-0",
                 )}
               >
-                <div className="border border-border bg-popover shadow-lg">
+                <div className="border border-border bg-popover shadow-sm">
                   {category.items.map((item) =>
                     item.sub && item.sub.length > 0 ? (
                       <div

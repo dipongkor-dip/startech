@@ -19,7 +19,9 @@ const login = catchAsync(async (req: Request, res: Response, next: NextFunction)
   try {
     const {accessToken, refreshToken, isValidated, needPasswordReset} = await userService.login(email, phone, password);
 
-    res.status(status.OK).json({success: true, message: "Login successful", accessToken, refreshToken, isValidated, needPasswordReset});
+    res
+      .status(status.OK)
+      .json({success: true, message: "Login successful", accessToken, refreshToken, isValidated, needPasswordReset, loginCredential: email ? email : phone});
   } catch (error) {
     next(error);
   }
@@ -33,7 +35,7 @@ const register = catchAsync(async (req: Request, res: Response, next: NextFuncti
   try {
     await userService.register(email, phone, password, userName);
 
-    res.status(status.CREATED).json({success: true, message: "Registration successful. Please verify your OTP."});
+    res.status(status.CREATED).json({success: true, message: "Registration successful. Please verify your OTP.", loginCredential: email ? email : phone});
   } catch (error: any) {
     next(error);
   }
@@ -91,11 +93,11 @@ const verifyOtp = catchAsync(async (req: Request, res: Response, next: NextFunct
         return;
       }
 
-      const {accessToken, refreshToken} = await userService.verifyOtp(email, null);
+      const {accessToken, refreshToken, isValidated} = await userService.verifyOtp(email, null);
 
       await deleteOTP(otpKey);
 
-      res.status(status.OK).json({success: true, message: "OTP verified successfully", accessToken, refreshToken});
+      res.status(status.OK).json({success: true, message: "OTP verified successfully", accessToken, refreshToken, isValidated});
     } else if (phone) {
       const otpKey = `otp:${phone}`;
       const storedOtp = await getOTP(otpKey);
@@ -105,11 +107,11 @@ const verifyOtp = catchAsync(async (req: Request, res: Response, next: NextFunct
         return;
       }
 
-      const {accessToken, refreshToken} = await userService.verifyOtp(null, phone);
+      const {accessToken, refreshToken, isValidated} = await userService.verifyOtp(null, phone);
 
       await deleteOTP(otpKey);
 
-      res.status(status.OK).json({success: true, message: "OTP verified successfully", accessToken, refreshToken});
+      res.status(status.OK).json({success: true, message: "OTP verified successfully", accessToken, refreshToken, isValidated});
     } else {
       res.status(status.BAD_REQUEST).json({success: false, message: "Email or phone is required"});
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import { CategoryProductCard } from "@/components/category/CategoryProductCard";
+import { ProductCard } from "./ProductCard";
 
 // Mock product data for featured products
 const mockProducts = [
@@ -84,7 +85,7 @@ export function FeaturedProducts() {
         
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {mockProducts.map((product) => (
-            <CategoryProductCard 
+            <ProductCard
               key={product.id} 
               product={product}
               className="hover:shadow-xl transition-shadow duration-200"

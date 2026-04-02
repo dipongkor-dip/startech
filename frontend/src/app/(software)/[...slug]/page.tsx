@@ -21,6 +21,7 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 
 export default async function CategoryPage({params, searchParams}: Props) {
   const {slug} = await params;
+  console.log("slug", slug);
   const query = searchParams ? await searchParams : {};
   const listing = resolveCategoryListing(slug);
   if (!listing) notFound();

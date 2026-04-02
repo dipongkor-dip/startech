@@ -23,17 +23,13 @@ const register = async (email: string | null, phone: string | null, password: st
 
   const hashedPassword = await bcrypt.hash(password, 12);
 
-  const userId = await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx) => {
     const user = await tx.user.create({
       data: {email, phone, password: hashedPassword},
     });
 
     await tx.customer.create({data: {userId: user.id, name}});
-
-    return user.id;
   });
-
-  return userId;
 };
 
 const sendOtpUserCheck = async (email: string | null, phone: string | null) => {
@@ -64,19 +60,21 @@ const verifyOtp = async (email: string | null, phone: string | null) => {
 
   const accessToken = signAccessToken(user.id, user.role);
   const refreshToken = signRefreshToken(user.id, user.role);
-  return {accessToken, refreshToken};
+  return {accessToken, refreshToken, isValidated: user.isValidated};
 };
 
 // POST /auth/login - email or phone + password (body: { login: "email@x.com"|"phone", password })
 const login = async (email: string | null, phone: string | null, password: string) => {
-  const user = await prisma.user.findFirst({
-    where: {
-      OR: [...(email ? [{email}] : []), ...(phone ? [{phone}] : [])],
-    },
-  });
+  let user;
+
+  if (email) {
+    user = await prisma.user.findUnique({where: {email}});
+  } else if (phone) {
+    user = await prisma.user.findUnique({where: {phone}});
+  }
 
   if (!user || !user.password) {
-    throw new ServerError(status.NON_AUTHORITATIVE_INFORMATION, "Invalid credentials");
+    throw new ServerError(status.NOT_FOUND, "Invalid credentials");
   }
 
   const isValid = await bcrypt.compare(password, user.password);
