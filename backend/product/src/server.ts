@@ -1,6 +1,7 @@
 import {Server} from "http";
 import app from "./app";
 import {connectDatabase, disconnectDatabase} from "./app/config/database";
+import env from "./app/env";
 
 let server: Server;
 
@@ -8,8 +9,8 @@ async function main() {
   try {
     await connectDatabase();
 
-    server = app.listen(3004, () => {
-      console.log(`✅ Product server is listening on port 3004`);
+    server = app.listen(env.port, () => {
+      console.log(`✅ Product server is listening on port ${env.port}`);
     });
   } catch (err) {
     console.log("😈 Product server error, shutting down ...", err);

@@ -6,7 +6,7 @@ import passport from "passport";
 import {env} from "./app/env/index.js";
 import "./app/config/passport.js";
 import router from "./app/routes/index.js";
-import {globalError} from "./app/errors/globalError.js";
+import {globalError} from "./app/handler/globalError.js";
 
 const app: Application = express();
 

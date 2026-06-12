@@ -13,7 +13,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-startech} -d ${POSTGRES_DB:-postgres}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-startech} -d ${POSTGRES_DB:-postgres}" ]
       interval: 2s
       timeout: 5s
       retries: 10
@@ -29,6 +29,19 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - mongodb_data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 2s
+      timeout: 5s
+      retries: 10
 
   frontend:
     build:
@@ -57,11 +70,11 @@ services:
       context: ./backend/delivery
       dockerfile: Dockerfile
     ports:
-      - "3001:3001"
+      - "5001:5001"
     env_file:
       - .env
     environment:
-      PORT: 3001
+      PORT: 5001
       NODE_ENV: ${NODE_ENV}
       FRONTEND_URL: ${FRONTEND_URL}
       USER_SERVICE_URL: ${USER_SERVICE_URL}
@@ -79,11 +92,11 @@ services:
       context: ./backend/order
       dockerfile: Dockerfile
     ports:
-      - "3002:3002"
+      - "5002:5002"
     env_file:
       - .env
     environment:
-      PORT: 3002
+      PORT: 5002
       NODE_ENV: ${NODE_ENV}
       FRONTEND_URL: ${FRONTEND_URL}
       USER_SERVICE_URL: ${USER_SERVICE_URL}
@@ -102,11 +115,11 @@ services:
       context: ./backend/user
       dockerfile: Dockerfile
     ports:
-      - "3003:3003"
+      - "5003:5003"
     env_file:
       - .env
     environment:
-      PORT: 3003
+      PORT: 5003
       NODE_ENV: ${NODE_ENV}
       DATABASE_URL: ${USER_DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
@@ -136,11 +149,11 @@ services:
       context: ./backend/chat
       dockerfile: Dockerfile
     ports:
-      - "3006:3006"
+      - "5006:5006"
     env_file:
       - .env
     environment:
-      PORT: 3006
+      PORT: 5006
       NODE_ENV: ${NODE_ENV}
       FRONTEND_URL: ${FRONTEND_URL}
     volumes:
@@ -155,11 +168,11 @@ services:
       context: ./backend/product
       dockerfile: Dockerfile
     ports:
-      - "3004:3004"
+      - "5004:5004"
     env_file:
       - .env
     environment:
-      PORT: 3004
+      PORT: 5004
       NODE_ENV: ${NODE_ENV}
       DB_URL: ${PRODUCT_DB_URL}
       FRONTEND_URL: ${FRONTEND_URL}
@@ -179,11 +192,11 @@ services:
       context: ./backend/payment
       dockerfile: Dockerfile
     ports:
-      - "3005:3005"
+      - "5005:5005"
     env_file:
       - .env
     environment:
-      PORT: 3005
+      PORT: 5005
       NODE_ENV: ${NODE_ENV}
       DATABASE_URL: ${PAYMENT_DATABASE_URL}
       FRONTEND_URL: ${FRONTEND_URL}
@@ -201,5 +214,5 @@ services:
 
 volumes:
   postgres_data:
-  mongodb_data:
-  # frontend_node_modules:
+  mongodb_data: # frontend_node_modules:
+  redis_data:

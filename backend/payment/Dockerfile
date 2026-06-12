@@ -15,7 +15,7 @@ COPY . .
 
 RUN pnpm exec prisma generate --schema=./prisma/schema.prisma
 
-ENV PORT=3005
-EXPOSE 3005
+ENV PORT=5005
+EXPOSE 5005
 
 CMD ["pnpm", "dev"]

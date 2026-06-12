@@ -10,6 +10,6 @@ RUN pnpm install
 
 COPY . .
 
-EXPOSE 3002
+EXPOSE 5002
 
 CMD ["pnpm", "dev"]

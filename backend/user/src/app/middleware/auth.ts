@@ -2,7 +2,7 @@ import {Request, Response, NextFunction} from "express";
 import {verifyToken} from "../helper/jwt";
 import {JwtPayload} from "jsonwebtoken";
 import status from "http-status";
-import ServerError from "../errors/ServerError";
+import ServerError from "../handler/ServerError";
 
 export interface AuthenticatedRequest extends Request {
   token?: JwtPayload;

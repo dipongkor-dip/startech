@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import {prisma} from "../config/database";
 import {signAccessToken, signRefreshToken} from "../helper/jwt";
 import {UserRole} from "@prisma/client";
-import ServerError from "../errors/ServerError";
+import ServerError from "../handler/ServerError";
 import status from "http-status";
 
 // POST /auth/register - email or phone + password

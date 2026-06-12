@@ -18,8 +18,8 @@ COPY . .
 RUN pnpm build
 
 # Environment variables
-ENV PORT=3003
-EXPOSE 3003
+ENV PORT=5003
+EXPOSE 5003
 
 # Run migrations before starting the app
 CMD pnpm db:migrate && pnpm dev
