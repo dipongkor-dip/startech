@@ -1,23 +1,20 @@
 import {Request, Response, NextFunction} from "express";
-import {userService} from "../services";
 import status from "http-status";
 import {checkRateLimit, deleteOTP, getOTP, redisClient, setOTP, setRateLimit} from "../config/redis";
 import {sendOTPbyMail} from "../config/nodemailer";
 import {generateOtp} from "../helper/otp";
 import {JwtPayload} from "jsonwebtoken";
-import {AuthenticatedRequest} from "../middleware/auth";
+import {AuthenticatedRequest} from "../middleware/authentication";
 import catchAsync from "../utils/catchAsync";
+import {authService} from "./auth.service";
+import {changePasswordDTO, loginDTO, sendOtpDTO, verifyOtpDTO} from "./auth.validation";
 
 const login = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const {email, phone, password} = req.body;
-
-  if ((!email && !phone) || !password) {
-    res.status(status.BAD_REQUEST).json({success: false, message: "Email or Phone and password required"});
-    return;
-  }
+  console.log("object", email, password)
 
   try {
-    const {accessToken, refreshToken, isValidated, needPasswordReset} = await userService.login(email, phone, password);
+    const {accessToken, refreshToken, isValidated, needPasswordReset} = await authService.login(req.body as loginDTO);
 
     res
       .status(status.OK)
@@ -28,12 +25,9 @@ const login = catchAsync(async (req: Request, res: Response, next: NextFunction)
 });
 
 const register = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const {email, phone, password, name} = req.body;
-
-  const userName = name || email?.match(/^([a-zA-Z]+)(?=[0-9]*@)/)?.[1] || "User";
-
+  const {email, phone} = req.body;
   try {
-    await userService.register(email, phone, password, userName);
+    await authService.register(req.body);
 
     res.status(status.CREATED).json({success: true, message: "Registration successful. Please verify your OTP.", loginCredential: email ? email : phone});
   } catch (error: any) {
@@ -46,7 +40,7 @@ const sendOtp = catchAsync(async (req: Request, res: Response, next: NextFunctio
   const otp = generateOtp();
 
   try {
-    await userService.sendOtpUserCheck(email, phone);
+    await authService.sendOtpUserCheck(req.body as sendOtpDTO);
 
     const otpKey = email ? `otp:${email}` : `otp:${phone}`;
     const rateLimitKey = email ? `rate:${email}` : `rate:${phone}`;
@@ -78,12 +72,9 @@ const sendOtp = catchAsync(async (req: Request, res: Response, next: NextFunctio
 const verifyOtp = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const {email, phone, otp} = req.body;
 
-  if (!otp) {
-    res.status(status.BAD_REQUEST).json({success: false, message: "OTP is required"});
-    return;
-  }
-
   try {
+    const {accessToken, refreshToken, isValidated} = await authService.verifyOtp(req.body as verifyOtpDTO);
+
     if (email) {
       const otpKey = `otp:${email}`;
       const storedOtp = await getOTP(otpKey);
@@ -92,8 +83,6 @@ const verifyOtp = catchAsync(async (req: Request, res: Response, next: NextFunct
         res.status(status.BAD_REQUEST).json({success: false, message: "OTP expired or not found"});
         return;
       }
-
-      const {accessToken, refreshToken, isValidated} = await userService.verifyOtp(email, null);
 
       await deleteOTP(otpKey);
 
@@ -106,8 +95,6 @@ const verifyOtp = catchAsync(async (req: Request, res: Response, next: NextFunct
         res.status(status.BAD_REQUEST).json({success: false, message: "OTP expired or not found"});
         return;
       }
-
-      const {accessToken, refreshToken, isValidated} = await userService.verifyOtp(null, phone);
 
       await deleteOTP(otpKey);
 
@@ -124,7 +111,7 @@ const me = catchAsync(async (req: AuthenticatedRequest, res: Response, next: Nex
   const {userId} = req.token as JwtPayload;
 
   try {
-    const user = await userService.getMe(userId);
+    const user = await authService.getMe(userId);
 
     res.status(status.OK).json({success: true, message: "User retrieved successfully", user});
   } catch (error) {
@@ -133,20 +120,14 @@ const me = catchAsync(async (req: AuthenticatedRequest, res: Response, next: Nex
 });
 
 const changePassword = catchAsync(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  const {currentPassword, newPassword} = req.body;
   const {userId} = req.token as JwtPayload;
 
-  if (!currentPassword || !newPassword) {
-    res.status(status.BAD_REQUEST).json({success: false, message: "Current password and new password are required"});
-    return;
-  }
-
   try {
-    await userService.changePassword(userId, currentPassword, newPassword);
+    await authService.changePassword(userId, req.body as changePasswordDTO);
     res.status(status.OK).json({success: true, message: "Password changed successfully"});
   } catch (error) {
     next(error);
   }
 });
 
-export const userController = {login, register, verifyOtp, sendOtp, me, changePassword};
+export const authController = {login, register, verifyOtp, sendOtp, me, changePassword};

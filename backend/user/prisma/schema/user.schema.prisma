@@ -46,114 +46,11 @@ model User {
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
 
-  customer Customer?
-  superAdmin SuperAdmin?
-  admin   Admin?
+  customer               Customer?
+  admin                  Admin?
   customerSupportManager CustomerSupportManager?
-  deliveryBoy DeliveryBoy?
-  productManager ProductManager?
+  deliveryBoy            DeliveryBoy?
+  productManager         ProductManager?
 
   @@map("users")
-}
-
-model Customer {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name      String
-  avatar    String?
-  division  String?
-  city      String?
-  upazila   String?
-  address   String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("customers")
-}
-
-model SuperAdmin {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name      String
-  avatar    String?
-  division  String?
-  city      String?
-  upazila   String?
-  address   String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("super_admins")
-}
-
-model Admin {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name      String
-  avatar    String?
-  division  String?
-  city      String?
-  upazila   String?
-  address   String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("admins")
-}
-
-model CustomerSupportManager {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name      String
-  avatar    String?
-  division  String?
-  city      String?
-  upazila   String?
-  address   String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("customer_support_managers")
-}
-
-model DeliveryBoy {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name      String
-  avatar    String?
-  division  String?
-  city      String?
-  upazila   String?
-  address   String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("delivery_boys")
-}
-
-model ProductManager {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name      String
-  avatar    String?
-  division  String?
-  city      String?
-  upazila   String?
-  address   String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("product_managers")
 }

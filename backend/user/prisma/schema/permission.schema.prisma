@@ -1,0 +1,16 @@
+model ProductPermission {
+    id               String         @id @default(cuid())
+    productManagerId String
+    productManager   ProductManager @relation(fields: [productManagerId], references: [id], onDelete: Cascade)
+
+    categoryId String
+
+    adminId String
+    admin   Admin  @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([productManagerId, categoryId])
+    @@map("product_permissions")
+}

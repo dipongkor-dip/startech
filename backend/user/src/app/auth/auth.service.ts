@@ -4,16 +4,16 @@ import {signAccessToken, signRefreshToken} from "../helper/jwt";
 import {UserRole} from "@prisma/client";
 import ServerError from "../handler/ServerError";
 import status from "http-status";
+import {email} from "zod/v4/classic/external.cjs";
+import {changePasswordDTO, loginDTO, registerDTO, sendOtpDTO, verifyOtpDTO} from "./auth.validation";
 
 // POST /auth/register - email or phone + password
-const register = async (email: string | null, phone: string | null, password: string, name: string) => {
-  if ((!email && !phone) || !password) {
-    throw new ServerError(status.BAD_REQUEST, "Email or phone and password are required");
-  }
+const register = async (payload: registerDTO) => {
+  const userName = payload.name || payload.email?.match(/^([a-zA-Z]+)(?=[0-9]*@)/)?.[1] || "User";
 
   const existingUser = await prisma.user.findFirst({
     where: {
-      OR: [...(email ? [{email}] : []), ...(phone ? [{phone}] : [])],
+      OR: [...(payload.email ? [{email: payload.email}] : []), ...(payload.phone ? [{phone: payload.phone}] : [])],
     },
   });
 
@@ -21,18 +21,20 @@ const register = async (email: string | null, phone: string | null, password: st
     throw new ServerError(status.BAD_REQUEST, `User with this ${existingUser.email ? "email" : "phone"} already exists`);
   }
 
-  const hashedPassword = await bcrypt.hash(password, 12);
+  const hashedPassword = await bcrypt.hash(payload.password, 12);
 
   await prisma.$transaction(async (tx) => {
     const user = await tx.user.create({
-      data: {email, phone, password: hashedPassword},
+      data: {email: payload.email, phone: payload.phone, password: hashedPassword},
     });
 
-    await tx.customer.create({data: {userId: user.id, name}});
+    await tx.customer.create({data: {userId: user.id, name: userName}});
   });
 };
 
-const sendOtpUserCheck = async (email: string | null, phone: string | null) => {
+const sendOtpUserCheck = async (payload: sendOtpDTO) => {
+  const {email, phone} = payload;
+
   if (email) {
     await prisma.user.findUniqueOrThrow({where: {email}});
   } else if (phone) {
@@ -42,21 +44,15 @@ const sendOtpUserCheck = async (email: string | null, phone: string | null) => {
   }
 };
 
-const verifyOtp = async (email: string | null, phone: string | null) => {
+const verifyOtp = async (payload: verifyOtpDTO) => {
+  const {email, phone, otp} = payload;
   let user;
 
-  if (email) {
-    user = await prisma.user.findUniqueOrThrow({where: {email}});
-  } else if (phone) {
-    user = await prisma.user.findUniqueOrThrow({where: {phone}});
-  } else {
-    throw new ServerError(status.BAD_REQUEST, "Email or phone is required");
-  }
+  if (email) user = await prisma.user.findUniqueOrThrow({where: {email}});
+  else if (phone) user = await prisma.user.findUniqueOrThrow({where: {phone}});
+  else throw new ServerError(status.BAD_REQUEST, "Email or phone is required");
 
-  await prisma.user.update({
-    where: {id: user.id},
-    data: {isValidated: true},
-  });
+  await prisma.user.update({where: {id: user.id}, data: {isValidated: true}});
 
   const accessToken = signAccessToken(user.id, user.role);
   const refreshToken = signRefreshToken(user.id, user.role);
@@ -64,7 +60,9 @@ const verifyOtp = async (email: string | null, phone: string | null) => {
 };
 
 // POST /auth/login - email or phone + password (body: { login: "email@x.com"|"phone", password })
-const login = async (email: string | null, phone: string | null, password: string) => {
+const login = async (payload: loginDTO) => {
+  const {email, phone, password} = payload;
+
   let user;
 
   if (email) {
@@ -111,17 +109,18 @@ const getMe = async (userId: string) => {
   return {profile, role: user.role};
 };
 
-const changePassword = async (userId: string, currentPassword: string, newPassword: string) => {
+const changePassword = async (userId: string, payload: changePasswordDTO) => {
+  const {currentPassword, newPassword} = payload;
   const user = await prisma.user.findUnique({where: {id: userId}});
 
   if (!user || !user.password) {
-    throw new ServerError(status.NOT_FOUND, "User not found");
+    throw new ServerError(status.NOT_FOUND, !user ? "User not found" : "User does not have a password set");
   }
 
   // Verify current password
   const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
   if (!isCurrentPasswordValid) {
-    throw new ServerError(status.UNAUTHORIZED, "Current password is incorrect");
+    throw new ServerError(status.UNAUTHORIZED, "Password is incorrect");
   }
 
   // Hash new password
@@ -137,4 +136,4 @@ const changePassword = async (userId: string, currentPassword: string, newPasswo
   });
 };
 
-export const userService = {register, verifyOtp, sendOtpUserCheck, login, getMe, changePassword};
+export const authService = {register, verifyOtp, sendOtpUserCheck, login, getMe, changePassword};

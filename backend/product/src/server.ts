@@ -2,12 +2,14 @@ import {Server} from "http";
 import app from "./app";
 import {connectDatabase, disconnectDatabase} from "./app/config/database";
 import env from "./app/env";
+import { connectRabbitMQ } from "./app/config/rabbitmq";
 
 let server: Server;
 
 async function main() {
   try {
     await connectDatabase();
+    await connectRabbitMQ();
 
     server = app.listen(env.port, () => {
       console.log(`✅ Product server is listening on port ${env.port}`);

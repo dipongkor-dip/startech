@@ -26,6 +26,7 @@ export const env = {
   },
 
   redis_url: process.env.REDIS_URL || "redis://localhost:6379",
+  rabbitmq_url: process.env.RABBITMQ_URL || "amqp://rabbitmq:5672",
 
   superAdmin: {
     email: process.env.SUPER_ADMIN_EMAIL || "superadmin1@gmail.com",

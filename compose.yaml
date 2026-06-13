@@ -43,6 +43,20 @@ services:
       timeout: 5s
       retries: 10
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5672:5672" # broker port (amqplib connect করবে)
+      - "15672:15672" # management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
   frontend:
     build:
       context: ./frontend
@@ -216,3 +230,4 @@ volumes:
   postgres_data:
   mongodb_data: # frontend_node_modules:
   redis_data:
+  rabbitmq_data:

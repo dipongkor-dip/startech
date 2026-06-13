@@ -5,8 +5,9 @@ import passport from "passport";
 
 import {env} from "./app/env/index.js";
 import "./app/config/passport.js";
-import router from "./app/routes/index.js";
+
 import {globalError} from "./app/handler/globalError.js";
+import {routes} from "./routes/index.js";
 
 const app: Application = express();
 
@@ -27,7 +28,7 @@ app.use(cookieParser());
 app.use(passport.initialize());
 
 // Routes
-app.use("/api/v1/auth", router);
+app.use("/api/v1", routes);
 
 // Welcome route
 app.get("/", (req: Request, res: Response) => {

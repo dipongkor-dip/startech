@@ -4,6 +4,7 @@ import {env} from "./app/env/index.js";
 import {connectDatabase, disconnectDatabase} from "./app/config/database.js";
 import {connectRedis} from "./app/config/redis.js";
 import superUser from "./app/utils/superUser.js";
+import { connectRabbitMQ } from "./app/config/rabbitmq.js";
 
 let server: Server;
 
@@ -12,6 +13,8 @@ async function main() {
     await connectDatabase();
 
     await connectRedis();
+
+    await connectRabbitMQ();
 
     server = app.listen(env.port, () => {
       console.log(`User server is listening on port ${env.port}`);

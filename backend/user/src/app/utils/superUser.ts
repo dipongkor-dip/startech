@@ -26,7 +26,7 @@ const superUser = async () => {
       },
     });
 
-    await tx.superAdmin.create({
+    await tx.admin.create({
       data: {
         name: "Super Admin",
         userId: user.id,
