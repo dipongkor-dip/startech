@@ -1,6 +1,6 @@
 import {Router, Request, Response} from "express";
-import { authRouter } from "../app/auth/auth.routes";
-import { productPermissionRoutes } from "../app/product-permission/product-permission.routes";
+import {authRouter} from "../app/modules/auth/auth.routes";
+import {productPermissionRoutes} from "../app/modules/product-permission/product-permission.routes";
 
 export const routes = Router();
 

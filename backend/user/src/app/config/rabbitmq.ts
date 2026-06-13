@@ -1,6 +1,7 @@
 // rabbitmq.ts
 import amqp from "amqplib";
 import {env} from "../env";
+import {randomUUID} from "crypto";
 
 let channel: amqp.Channel;
 
@@ -13,4 +14,31 @@ export const connectRabbitMQ = async () => {
   return channel;
 };
 
-export const getChannel = () => channel;
+export const sendRpcMessage = async <T>(requestQueue: string, responseQueue: string, payload: object): Promise<T> => {
+  await channel.assertQueue(requestQueue);
+  await channel.assertQueue(responseQueue);
+
+  const correlationId = randomUUID();
+
+  channel.sendToQueue(requestQueue, Buffer.from(JSON.stringify({...payload, correlationId})), {correlationId});
+
+  return new Promise<T>((resolve, reject) => {
+    const consumerTag = `consumer-${correlationId}`;
+
+    channel.consume(
+      responseQueue,
+      (msg) => {
+        if (!msg) return;
+
+        const response = JSON.parse(msg.content.toString());
+
+        if (msg.properties.correlationId === correlationId) {
+          channel.ack(msg);
+          channel.cancel(consumerTag);
+          resolve(response);
+        }
+      },
+      {noAck: false, consumerTag},
+    );
+  });
+};

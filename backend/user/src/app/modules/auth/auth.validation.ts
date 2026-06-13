@@ -13,7 +13,7 @@ export const loginSchema = zod
 
 export const registerSchema = zod
   .object({
-    name: zod.string().min(2, "Name must be at least 2 characters long"),
+    name: zod.string().min(2, "Name must be at least 2 characters long").optional(),
     email: zod.string().email("Invalid email format").optional(),
     phone: zod.string().min(10, "Phone number must be at least 10 digits long").optional(),
     password: zod.string().min(6, "Password must be at least 6 characters long"),
@@ -49,8 +49,17 @@ export const changePasswordSchema = zod.object({
   newPassword: zod.string().min(6, "New password must be at least 6 characters long"),
 });
 
+export const addEmployeeSchema = zod.object({
+  name: zod.string().min(2, "Name must be at least 2 characters long"),
+  email: zod.string().email("Invalid email format"),
+  phone: zod.string().min(10, "Phone number must be at least 10 digits long"),
+  password: zod.string().min(6, "Password must be at least 6 characters long"),
+  role: zod.enum(["ADMIN", "SUPER_ADMIN", "CUSTOMER_SUPPORT_MANAGER", "DELIVERY_BOY", "PRODUCT_MANAGER"]),
+});
+
 export type loginDTO = zod.infer<typeof loginSchema>;
 export type registerDTO = zod.infer<typeof registerSchema>;
 export type sendOtpDTO = zod.infer<typeof sendOtpSchema>;
 export type verifyOtpDTO = zod.infer<typeof verifyOtpSchema>;
 export type changePasswordDTO = zod.infer<typeof changePasswordSchema>;
+export type addEmployeeDTO = zod.infer<typeof addEmployeeSchema>;

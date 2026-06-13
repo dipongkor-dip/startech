@@ -1,11 +1,10 @@
 import bcrypt from "bcryptjs";
-import {prisma} from "../config/database";
-import {signAccessToken, signRefreshToken} from "../helper/jwt";
-import {UserRole} from "@prisma/client";
-import ServerError from "../handler/ServerError";
+import {Status, UserRole} from "@prisma/client";
+import ServerError from "../../handler/ServerError";
 import status from "http-status";
-import {email} from "zod/v4/classic/external.cjs";
-import {changePasswordDTO, loginDTO, registerDTO, sendOtpDTO, verifyOtpDTO} from "./auth.validation";
+import {addEmployeeDTO, changePasswordDTO, loginDTO, registerDTO, sendOtpDTO, verifyOtpDTO} from "./auth.validation";
+import {prisma} from "../../config/database";
+import {signAccessToken, signRefreshToken} from "../../helper/jwt";
 
 // POST /auth/register - email or phone + password
 const register = async (payload: registerDTO) => {
@@ -65,20 +64,16 @@ const login = async (payload: loginDTO) => {
 
   let user;
 
-  if (email) {
-    user = await prisma.user.findUnique({where: {email}});
-  } else if (phone) {
-    user = await prisma.user.findUnique({where: {phone}});
-  }
+  user = await prisma.user.findFirstOrThrow({
+    where: {OR: [email ? {email} : {}, phone ? {phone} : {}]},
+    select: {password: true, id: true, role: true, isValidated: true, needPasswordReset: true},
+  });
 
-  if (!user || !user.password) {
-    throw new ServerError(status.NOT_FOUND, "Invalid credentials");
-  }
+  if (!user || !user.password) throw new ServerError(status.NOT_FOUND, !user ? "Invalid credentials" : "User does not have a password set");
 
   const isValid = await bcrypt.compare(password, user.password);
-  if (!isValid) {
-    throw new ServerError(status.UNAUTHORIZED, "Invalid credentials");
-  }
+  if (!isValid) throw new ServerError(status.UNAUTHORIZED, "Invalid credentials");
+
   const accessToken = signAccessToken(user.id, user.role);
   const refreshToken = signRefreshToken(user.id, user.role);
   return {accessToken, refreshToken, isValidated: user.isValidated, needPasswordReset: user.needPasswordReset};
@@ -88,18 +83,14 @@ const login = async (payload: loginDTO) => {
 const getMe = async (userId: string) => {
   const user = await prisma.user.findUnique({where: {id: userId, isValidated: true, needPasswordReset: false}});
 
-  if (!user) {
-    throw new ServerError(status.FORBIDDEN, "User not found");
-  }
+  if (!user) throw new ServerError(status.FORBIDDEN, "User not found");
 
   let profile;
 
-  if (user.role === UserRole.ADMIN) {
+  if (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) {
     profile = await prisma.admin.findUnique({where: {userId}});
   } else if (user.role === UserRole.CUSTOMER) {
     profile = await prisma.customer.findUnique({where: {userId}});
-  } else if (user.role === UserRole.SUPER_ADMIN) {
-    profile = await prisma.superAdmin.findUnique({where: {userId}});
   } else if (user.role === UserRole.CUSTOMER_SUPPORT_MANAGER) {
     profile = await prisma.customerSupportManager.findUnique({where: {userId}});
   } else if (user.role === UserRole.DELIVERY_BOY) {
@@ -111,17 +102,13 @@ const getMe = async (userId: string) => {
 
 const changePassword = async (userId: string, payload: changePasswordDTO) => {
   const {currentPassword, newPassword} = payload;
-  const user = await prisma.user.findUnique({where: {id: userId}});
+  const user = await prisma.user.findUniqueOrThrow({where: {id: userId}});
 
-  if (!user || !user.password) {
-    throw new ServerError(status.NOT_FOUND, !user ? "User not found" : "User does not have a password set");
-  }
+  if (!user.password) throw new ServerError(status.NOT_FOUND, "User does not have a password set");
 
   // Verify current password
-  const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
-  if (!isCurrentPasswordValid) {
-    throw new ServerError(status.UNAUTHORIZED, "Password is incorrect");
-  }
+  const valid = await bcrypt.compare(currentPassword, user.password);
+  if (!valid) throw new ServerError(status.UNAUTHORIZED, "Password is incorrect");
 
   // Hash new password
   const hashedNewPassword = await bcrypt.hash(newPassword, 12);
@@ -129,11 +116,53 @@ const changePassword = async (userId: string, payload: changePasswordDTO) => {
   // Update password and reset needPasswordReset flag
   await prisma.user.update({
     where: {id: userId},
-    data: {
-      password: hashedNewPassword,
-      needPasswordReset: false,
-    },
+    data: {password: hashedNewPassword, needPasswordReset: false},
   });
 };
 
-export const authService = {register, verifyOtp, sendOtpUserCheck, login, getMe, changePassword};
+const addEmployee = async (payload: addEmployeeDTO, userRole: string) => {
+  const {name, email, phone, password, role} = payload;
+
+  const user = await prisma.user.findFirst({
+    where: {
+      AND: [{OR: [email ? {email} : {}, phone ? {phone} : {}]}, {OR: [{status: Status.active}, {status: Status.inactive}]}],
+    },
+    select: {
+      id: true,
+      role: true,
+      isValidated: true,
+      needPasswordReset: true,
+      email: true,
+      phone: true,
+    },
+  });
+
+  if (user) {
+    throw new ServerError(status.BAD_REQUEST, "User with this email or phone already exists");
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 12);
+
+  return await prisma.$transaction(async (tx) => {
+    const createdUser = await tx.user.create({
+      data: {email, phone, password: hashedPassword, role, needPasswordReset: true},
+    });
+
+    if (role === UserRole.ADMIN || role === UserRole.SUPER_ADMIN) {
+      if (userRole !== UserRole.SUPER_ADMIN) {
+        throw new ServerError(status.FORBIDDEN, "Only super admins can create admin users");
+      }
+      await tx.admin.create({data: {userId: createdUser.id, name: name || "Admin"}});
+    } else if (role === UserRole.CUSTOMER_SUPPORT_MANAGER) {
+      await tx.customerSupportManager.create({data: {userId: createdUser.id, name: name || "Customer Support Manager"}});
+    } else if (role === UserRole.DELIVERY_BOY) {
+      await tx.deliveryBoy.create({data: {userId: createdUser.id, name: name || "Delivery Boy"}});
+    } else if (role === UserRole.PRODUCT_MANAGER) {
+      await tx.productManager.create({data: {userId: createdUser.id, name: name || "Product Manager"}});
+    }
+
+    return createdUser;
+  });
+};
+
+export const authService = {register, verifyOtp, sendOtpUserCheck, login, getMe, changePassword, addEmployee};

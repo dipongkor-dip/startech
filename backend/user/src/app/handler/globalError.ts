@@ -15,7 +15,11 @@ export const globalError = async (err: any, req: Request, res: Response, next: N
     error = env.nodeEnv === "development" ? err.stack : undefined;
   }
 
-  console.log("global err", error);
+  if (err.code === "P2002") {
+    status = err.status;
+    message = err.message;
+    error = env.nodeEnv === "development" ? err.stack : undefined;
+  }
 
   res.status(status).json({
     success: false,

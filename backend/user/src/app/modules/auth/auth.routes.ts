@@ -1,9 +1,9 @@
 import {Router} from "express";
-import {authentication} from "../middleware/authentication";
+import {authentication} from "../../middleware/authentication";
 import {UserRole} from "@prisma/client";
 import {authController} from "./auth.controller";
-import {changePasswordSchema, loginSchema, registerSchema, sendOtpSchema, verifyOtpSchema} from "./auth.validation";
-import {validateSchema} from "../middleware/validateSchema";
+import {addEmployeeSchema, changePasswordSchema, loginSchema, registerSchema, sendOtpSchema, verifyOtpSchema} from "./auth.validation";
+import {validateSchema} from "../../middleware/validateSchema";
 
 const router = Router();
 
@@ -22,5 +22,7 @@ router.get(
   authentication(UserRole.ADMIN, UserRole.CUSTOMER, UserRole.SUPER_ADMIN, UserRole.DELIVERY_BOY, UserRole.CUSTOMER_SUPPORT_MANAGER, UserRole.PRODUCT_MANAGER),
   authController.me,
 );
+
+router.post("/add-employee", authentication(UserRole.ADMIN, UserRole.SUPER_ADMIN), validateSchema(addEmployeeSchema), authController.addEmployee);
 
 export const authRouter = router;

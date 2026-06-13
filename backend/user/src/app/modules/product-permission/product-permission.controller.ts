@@ -1,15 +1,17 @@
 import {JwtPayload} from "jsonwebtoken";
-import catchAsync from "../utils/catchAsync";
+
 import {IProductPermission} from "./product-permission.interface";
 import {productPermissionService} from "./product-permission.service";
 import status from "http-status";
 import {NextFunction, Request, Response} from "express";
-import {AuthenticatedRequest} from "../middleware/authentication";
+import {AuthenticatedRequest} from "../../middleware/authentication";
+import catchAsync from "../../utils/catchAsync";
 
 const createPermission = catchAsync(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const {userId} = req.token as JwtPayload;
   try {
     const permission = await productPermissionService.createPermission(req.body as IProductPermission, userId as string);
+
     res.status(status.CREATED).json({success: true, message: "Permission created successfully", data: permission});
   } catch (error) {
     next(error);
