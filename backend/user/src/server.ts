@@ -17,7 +17,7 @@ async function main() {
     await connectRabbitMQ();
 
     server = app.listen(env.port, () => {
-      console.log(`User server is listening on port ${env.port}`);
+      console.log(`✅ User server is listening on port ${env.port}`);
     });
   } catch (err) {
     console.log("😈 User server error, shutting down ...", err);

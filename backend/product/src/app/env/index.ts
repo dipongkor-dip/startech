@@ -5,8 +5,8 @@ dotenv.config();
 // environment variables compose.yaml file is used to set the environment variables for the product service
 
 export default {
-  port: parseInt(process.env.PORT || '5004', 10),
-  dbUrl: process.env.DB_URL || 'mongodb://startech:startech@localhost:27017/startech_product?authSource=admin',
+  port: parseInt(process.env.PRODUCT_PORT || '5004', 10),
+  dbUrl: process.env.MONGO_DATABASE_URL || 'mongodb://startech:startech@mongodb:27017/startech?authSource=admin',
   nodeEnv: process.env.NODE_ENV || 'development',
   corsOrigin: process.env.FRONTEND_URL || 'http://localhost:3000',
   userServiceUrl: process.env.USER_SERVICE_URL || 'http://localhost:5003',

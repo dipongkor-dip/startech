@@ -67,9 +67,6 @@ services:
       - .env
     environment:
       PORT: 3000
-      API_URL: ${USER_SERVICE_URL:-http://user:3003}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-      NEXT_PUBLIC_CHAT_SERVICE_URL: ${NEXT_PUBLIC_CHAT_SERVICE_URL}
     volumes:
       - ./frontend:/app
       # - frontend_node_modules:/app/node_modules
@@ -89,11 +86,6 @@ services:
       - .env
     environment:
       PORT: 5001
-      NODE_ENV: ${NODE_ENV}
-      FRONTEND_URL: ${FRONTEND_URL}
-      USER_SERVICE_URL: ${USER_SERVICE_URL}
-      ORDER_SERVICE_URL: ${ORDER_SERVICE_URL}
-      PAYMENT_SERVICE_URL: ${PAYMENT_SERVICE_URL}
     volumes:
       - ./backend/delivery:/app
       - ./backend/delivery/node_modules:/app/node_modules
@@ -111,12 +103,6 @@ services:
       - .env
     environment:
       PORT: 5002
-      NODE_ENV: ${NODE_ENV}
-      FRONTEND_URL: ${FRONTEND_URL}
-      USER_SERVICE_URL: ${USER_SERVICE_URL}
-      PRODUCT_SERVICE_URL: ${PRODUCT_SERVICE_URL}
-      PAYMENT_SERVICE_URL: ${PAYMENT_SERVICE_URL}
-      DELIVERY_SERVICE_URL: ${DELIVERY_SERVICE_URL}
     volumes:
       - ./backend/order:/app
       - ./backend/order/node_modules:/app/node_modules
@@ -134,20 +120,6 @@ services:
       - .env
     environment:
       PORT: 5003
-      NODE_ENV: ${NODE_ENV}
-      DATABASE_URL: ${USER_DATABASE_URL}
-      JWT_SECRET: ${JWT_SECRET}
-      API_URL: ${USER_SERVICE_URL}
-      USER_PUBLIC_URL: ${USER_PUBLIC_URL}
-      FRONTEND_URL: ${FRONTEND_URL}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID}
-      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET}
-      REDIS_URL: ${REDIS_URL}
-      SMTP_USER: ${SMTP_USER}
-      SMTP_PASS: ${SMTP_PASS}
-      SMTP_FROM: ${SMTP_FROM}
     depends_on:
       postgres:
         condition: service_healthy
@@ -168,8 +140,6 @@ services:
       - .env
     environment:
       PORT: 5006
-      NODE_ENV: ${NODE_ENV}
-      FRONTEND_URL: ${FRONTEND_URL}
     volumes:
       - ./backend/chat:/app
       - ./backend/chat/node_modules:/app/node_modules
@@ -187,11 +157,6 @@ services:
       - .env
     environment:
       PORT: 5004
-      NODE_ENV: ${NODE_ENV}
-      DB_URL: ${PRODUCT_DB_URL}
-      FRONTEND_URL: ${FRONTEND_URL}
-      USER_SERVICE_URL: ${USER_SERVICE_URL}
-      ORDER_SERVICE_URL: ${ORDER_SERVICE_URL}
     depends_on:
       - mongodb
     volumes:
@@ -211,11 +176,6 @@ services:
       - .env
     environment:
       PORT: 5005
-      NODE_ENV: ${NODE_ENV}
-      DATABASE_URL: ${PAYMENT_DATABASE_URL}
-      FRONTEND_URL: ${FRONTEND_URL}
-      USER_SERVICE_URL: ${USER_SERVICE_URL}
-      ORDER_SERVICE_URL: ${ORDER_SERVICE_URL}
     depends_on:
       postgres:
         condition: service_healthy
@@ -228,6 +188,6 @@ services:
 
 volumes:
   postgres_data:
-  mongodb_data: # frontend_node_modules:
+  mongodb_data:
   redis_data:
   rabbitmq_data:
