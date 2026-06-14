@@ -16,7 +16,7 @@ async function main() {
     await connectRabbitMQ();
 
     // Seed categories only once when server starts
-    await seedCategories();
+    // await seedCategories();
 
     // Start HTTP server
     server = app.listen(env.port, () => {
