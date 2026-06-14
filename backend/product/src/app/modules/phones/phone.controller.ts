@@ -1,7 +1,10 @@
-import {Request, Response} from "express";
+import {NextFunction, Request, Response} from "express";
 import {sendResponse} from "../../utils/sendResponse";
 import {phoneService} from "./phone.service";
 import {StatusCodes} from "http-status-codes";
+import {JwtPayload} from "jsonwebtoken";
+import {AuthenticatedRequest} from "../../middleware/product-permission";
+import {catchAsync} from "../../utils/catchAsync";
 
 const getPhones = async (req: Request, res: Response) => {
   const phones = await phoneService.getPhones();
@@ -31,15 +34,19 @@ const getPhoneById = async (req: Request, res: Response) => {
   });
 };
 
-const createPhone = async (req: Request, res: Response) => {
-  const phone = await phoneService.createPhone(req.body);
-  return sendResponse(res, {
-    status: StatusCodes.CREATED,
-    success: true,
-    message: "Phone created successfully",
-    data: phone,
-  });
-};
+const createPhone = catchAsync(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const phone = await phoneService.createPhone(req.body);
+    return sendResponse(res, {
+      status: StatusCodes.CREATED,
+      success: true,
+      message: "Phone created successfully",
+      data: phone,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 const updatePhone = async (req: Request, res: Response) => {
   const phone = await phoneService.updatePhone(req.params.id, req.body);

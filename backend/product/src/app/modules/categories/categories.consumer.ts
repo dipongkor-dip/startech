@@ -3,7 +3,7 @@ import {category} from "./categories.model";
 /**
  * Listener for category_check queue
  */
-export const registerCategoryCheckListener = (channel: amqp.Channel) => {
+export const categoryCheckListener = (channel: amqp.Channel) => {
   channel.consume("category_check", async (msg: any) => {
     if (!msg) return;
 

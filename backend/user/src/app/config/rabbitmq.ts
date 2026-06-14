@@ -2,6 +2,7 @@
 import amqp from "amqplib";
 import {env} from "../env";
 import {randomUUID} from "crypto";
+import {productPermissionCheckListener} from "../modules/product-permission/product-permission.consumer";
 
 let channel: amqp.Channel;
 
@@ -11,6 +12,14 @@ export const connectRabbitMQ = async () => {
   const conn = await amqp.connect(env.rabbitmq_url);
   channel = await conn.createChannel();
   console.log("✅ RabbitMQ connected");
+
+  // Common queues assert
+  await channel.assertQueue("product_permission");
+  await channel.assertQueue("product_per_response");
+
+  // Attach all listeners
+  productPermissionCheckListener(channel);
+
   return channel;
 };
 

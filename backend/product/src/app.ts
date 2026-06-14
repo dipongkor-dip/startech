@@ -1,4 +1,5 @@
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import express, {Application, Request, Response} from "express";
 import {routes} from "./app/routes";
 import env from "./app/env";
@@ -17,6 +18,7 @@ app.use(
 // Parsers
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+app.use(cookieParser());
 
 // Routes
 app.use("/api/v1", routes);

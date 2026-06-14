@@ -64,10 +64,18 @@ const login = async (payload: loginDTO) => {
 
   let user;
 
-  user = await prisma.user.findFirstOrThrow({
-    where: {OR: [email ? {email} : {}, phone ? {phone} : {}]},
-    select: {password: true, id: true, role: true, isValidated: true, needPasswordReset: true},
-  });
+  // user = await prisma.user.findFirstOrThrow({
+  //   where: {OR: [email ? {email} : {}, phone ? {phone} : {}]},
+  //   select: {password: true, id: true, role: true, isValidated: true, needPasswordReset: true},
+  // });
+
+  if (email) {
+    user = await prisma.user.findUnique({where: {email}, select: {password: true, id: true, role: true, isValidated: true, needPasswordReset: true}});
+  } else if (phone) {
+    user = await prisma.user.findUnique({where: {phone}, select: {password: true, id: true, role: true, isValidated: true, needPasswordReset: true}});
+  } else {
+    throw new ServerError(status.FORBIDDEN, "Invalid credentials");
+  }
 
   if (!user || !user.password) throw new ServerError(status.NOT_FOUND, !user ? "Invalid credentials" : "User does not have a password set");
 

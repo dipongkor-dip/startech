@@ -2,7 +2,7 @@ import {Server} from "http";
 import app from "./app";
 import {connectDatabase, disconnectDatabase} from "./app/config/database";
 import env from "./app/env";
-import { connectRabbitMQ } from "./app/config/rabbitmq";
+import {connectRabbitMQ} from "./app/config/rabbitmq";
 
 let server: Server;
 

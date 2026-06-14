@@ -26,7 +26,7 @@ const getAllCategories = async (parentId: string | null = null): Promise<Categor
   return Promise.all(
     nodes.map(async (node) => {
       const children = await getAllCategories(node._id.toString());
-      return {_id: node._id, name: node.name, isActive: node.isActive, child: children};
+      return {_id: node._id, name: node.name, isActive: node.isActive, autoNumber: node.autoNumber, child: children};
     }),
   );
 };

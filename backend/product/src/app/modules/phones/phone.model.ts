@@ -78,8 +78,10 @@ const specificationSchema = new Schema(
 const PhoneSchema = new Schema(
   {
     brand: {type: String, required: true, trim: true},
-    modelName: {type: String, required: true, trim: true},
-    productCode: {type: String, default: ""},
+    categoryId: {type: Schema.Types.ObjectId, ref: "Category", required: true},
+    permissionId: {type: String, required: true},
+    modelName: {type: String, required: true, trim: true, unique: true},
+    productCode: {type: String, default: "", unique: true},
     price: {type: Number, required: true, min: 0},
     discountPrice: {type: Number, min: 0},
     status: {type: String, enum: ["In Stock", "Out of Stock", "Coming Soon"], default: "In Stock"},
@@ -95,7 +97,7 @@ const PhoneSchema = new Schema(
     },
     storage: {type: String, default: ""},
     features: [{type: String}],
-    images: [{url: {type: String, required: true}}],
+    // images: [{url: {type: String, required: true}}],
     specification: specificationSchema,
     description: {
       type: [
