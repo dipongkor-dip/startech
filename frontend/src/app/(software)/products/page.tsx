@@ -15,7 +15,7 @@ import {PaginationFilter} from "@/components/pagination/PaginationFilter";
 
 export default function Products({products = getMockProducts()}: {listing?: CategoryListingResolved; products?: MockProduct[]}) {
   const searchParams = useSearchParams();
-  const categoryId = searchParams.get("category_id");
+  const categoryId = searchParams.get("category");
   const [pageSize, setPageSize] = React.useState<string>(searchParams.get("limit") || "12");
   const [sortBy, setSortBy] = React.useState<string>(searchParams.get("sortBy") || "default");
   const [currentPage, setCurrentPage] = React.useState<number>(parseInt(searchParams.get("page") || "1"));

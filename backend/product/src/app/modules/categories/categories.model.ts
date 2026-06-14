@@ -4,6 +4,7 @@ import {CategoryInt} from "./categories.interface";
 const categorySchema = new Schema<CategoryInt>(
   {
     name: {type: String, required: true, trim: true},
+    slug: {type: String, required: true, unique: true},
     title: {type: String, default: null},
     description: {type: String, default: null},
     parentId: {type: Schema.Types.ObjectId, ref: "Category", default: null},

@@ -11,6 +11,7 @@ import {usePathname, useRouter, useSearchParams} from "next/navigation";
 
 type NavCategory = {
   _id: string;
+  slug: string;
   name: string;
   child?: NavCategory[];
 };
@@ -19,61 +20,18 @@ const NAV_CATEGORIES: NavCategory[] = [
   {
     _id: "desktopsdfg",
     name: "Desktop",
+    slug: "desktops",
     child: [
-      {_id: "desktop-offer", name: "Desktop Offer"},
+      {_id: "desktop-offer", name: "Desktop Offer", slug: "desktop-offer"},
       {
         _id: "star-pc",
         name: "Star PC",
+        slug: "star-pc",
         child: [
-          {_id: "star-intel-pc", name: "Intel PC"},
-          {_id: "star-ryzen-pc", name: "Ryzen PC"},
+          {_id: "star-intel-pc", name: "Intel PC", slug: "star-intel-pc"},
+          {_id: "star-ryzen-pc", name: "Ryzen PC", slug: "star-ryzen-pc"},
         ],
       },
-      {
-        _id: "gaming-pc",
-        name: "Gaming PC",
-        child: [
-          {_id: "gaming-intel-pc", name: "Intel PC"},
-          {_id: "gaming-ryzen-pc", name: "Ryzen PC"},
-        ],
-      },
-      {
-        _id: "brand-pc",
-        name: "Brand PC",
-        child: [
-          {_id: "brand-acer", name: "Acer"},
-          {_id: "brand-asus", name: "ASUS"},
-          {_id: "brand-dell", name: "Dell"},
-          {_id: "brand-hp", name: "HP"},
-          {_id: "brand-lenovo", name: "Lenovo"},
-          {_id: "brand-msi", name: "MSI"},
-          {_id: "brand-gigabyte", name: "Gigabyte"},
-        ],
-      },
-      {
-        _id: "all-in-one-pc",
-        name: "All-in-One PC",
-        child: [
-          {_id: "aio-hp", name: "HP"},
-          {_id: "aio-dell", name: "Dell"},
-          {_id: "aio-asus", name: "ASUS"},
-        ],
-      },
-      {_id: "ai-pc", name: "AI PC"},
-      {_id: "portable-mini-pc", name: "Portable Mini PC"},
-      {
-        _id: "apple-mac-mini",
-        name: "Apple Mac Mini",
-        child: [
-          {_id: "mac-mini-m1", name: "M1"},
-          {_id: "mac-mini-m2", name: "M2"},
-          {_id: "mac-mini-m3", name: "M3"},
-        ],
-      },
-      {_id: "apple-imac", name: "Apple iMac"},
-      {_id: "apple-imac-studio", name: "Apple iMac Studio"},
-      {_id: "apple-mac-pro", name: "Apple Mac Pro"},
-      {_id: "show-all-desktop", name: "Show All Desktop"},
     ],
   },
 ];
@@ -90,7 +48,12 @@ function SubFlyout({items, parentLabel, isOpen, onLinkClick}: {items: NavCategor
       aria-label={`${parentLabel} subcategories`}
     >
       {items.map((s) => (
-        <Link key={s._id} href={`/products?category=${s._id}`} onClick={onLinkClick} className="block px-3 py-1 text-sm transition-colors hover:bg-chart-1 hover:text-white">
+        <Link
+          key={s._id}
+          href={`/products?category=${s.slug}`}
+          onClick={onLinkClick}
+          className="block px-3 py-1 text-sm transition-colors hover:bg-chart-1 hover:text-white"
+        >
           {s.name}
         </Link>
       ))}
@@ -104,9 +67,9 @@ function renderMobileItems(items: NavCategory[], level: number, onSelect: (categ
       {items.map((item, index) => (
         <div key={`${item._id || item.name}-${level}-${index}`}>
           <Link
-            href={`/products?category=${item._id}`}
+            href={`/products?category=${item.slug}`}
             onClick={() => {
-              onSelect(item._id);
+              onSelect(item.slug);
               onClose();
             }}
             className={cn(
@@ -191,8 +154,8 @@ export function DemoCategoryMegaMenu({mobileSidebarOpen: mobileSidebarOpenProp, 
                             ? renderMobileItems(
                                 category.child,
                                 0,
-                                (id) => {
-                                  setPath(id);
+                                (slug) => {
+                                  setPath(slug);
                                   setMobileSidebarOpen(false);
                                 },
                                 () => setMobileSidebarOpen(false),
@@ -216,7 +179,7 @@ export function DemoCategoryMegaMenu({mobileSidebarOpen: mobileSidebarOpenProp, 
                 onClick={() => {
                   setOpenCategory(category.name);
 
-                  setPath(category._id);
+                  setPath(category.slug);
                   handleCloseAll();
                 }}
                 className="inline-flex child-center pr-3 py-2 text-sm font-medium text-foreground transition-colors hover:text-chart-1 group-hover/cat:text-chart-1"
@@ -238,7 +201,7 @@ export function DemoCategoryMegaMenu({mobileSidebarOpen: mobileSidebarOpenProp, 
                         item.child && item.child.length > 0 ? (
                           <div key={item._id} className="relative" onMouseEnter={() => handleHoverSub(0, item._id)} onMouseLeave={() => handleCloseSubPath(0)}>
                             <Link
-                              href={`/products?category=${item._id}`}
+                              href={`/products?category=${item.slug}`}
                               onClick={handleCloseAll}
                               className="flex child-center justify-between gap-2 px-2 py-1 text-sm text-foreground transition-colors hover:bg-chart-1 hover:text-white"
                             >
@@ -250,7 +213,7 @@ export function DemoCategoryMegaMenu({mobileSidebarOpen: mobileSidebarOpenProp, 
                         ) : (
                           <Link
                             key={item._id}
-                            href={`/products?category=${item._id}`}
+                            href={`/products?category=${item.slug}`}
                             onClick={handleCloseAll}
                             className="block px-2 py-1 text-sm text-foreground transition-colors hover:bg-chart-1 hover:text-white"
                           >

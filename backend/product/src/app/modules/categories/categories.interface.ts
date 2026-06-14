@@ -2,6 +2,7 @@ import mongoose, {ObjectId} from "mongoose";
 
 export interface CategoryInt {
   name: string;
+  slug: string;
   title?: string;
   description?: string;
   parentId?: mongoose.Types.ObjectId | null;
