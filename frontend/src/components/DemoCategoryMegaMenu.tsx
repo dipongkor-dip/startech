@@ -10,7 +10,6 @@ import {Button} from "@base-ui/react";
 import {usePathname, useRouter, useSearchParams} from "next/navigation";
 
 type NavCategory = {
-  _id: string;
   slug: string;
   name: string;
   child?: NavCategory[];
@@ -18,18 +17,17 @@ type NavCategory = {
 
 const NAV_CATEGORIES: NavCategory[] = [
   {
-    _id: "desktopsdfg",
+
     name: "Desktop",
     slug: "desktops",
     child: [
-      {_id: "desktop-offer", name: "Desktop Offer", slug: "desktop-offer"},
+      { name: "Desktop Offer", slug: "desktop-offer"},
       {
-        _id: "star-pc",
         name: "Star PC",
         slug: "star-pc",
         child: [
-          {_id: "star-intel-pc", name: "Intel PC", slug: "star-intel-pc"},
-          {_id: "star-ryzen-pc", name: "Ryzen PC", slug: "star-ryzen-pc"},
+          {name: "Intel PC", slug: "star-intel-pc"},
+          { name: "Ryzen PC", slug: "star-ryzen-pc"},
         ],
       },
     ],
@@ -49,7 +47,7 @@ function SubFlyout({items, parentLabel, isOpen, onLinkClick}: {items: NavCategor
     >
       {items.map((s) => (
         <Link
-          key={s._id}
+          key={s.slug}
           href={`/products?category=${s.slug}`}
           onClick={onLinkClick}
           className="block px-3 py-1 text-sm transition-colors hover:bg-chart-1 hover:text-white"
@@ -65,7 +63,7 @@ function renderMobileItems(items: NavCategory[], level: number, onSelect: (categ
   return (
     <div className={cn(level === 0 ? "space-y-1" : "ml-4 space-y-1")}>
       {items.map((item, index) => (
-        <div key={`${item._id || item.name}-${level}-${index}`}>
+        <div key={`${item.slug || item.name}-${level}-${index}`}>
           <Link
             href={`/products?category=${item.slug}`}
             onClick={() => {
@@ -199,7 +197,7 @@ export function DemoCategoryMegaMenu({mobileSidebarOpen: mobileSidebarOpenProp, 
                     <div className="relative bg-popover">
                       {category.child.map((item) =>
                         item.child && item.child.length > 0 ? (
-                          <div key={item._id} className="relative" onMouseEnter={() => handleHoverSub(0, item._id)} onMouseLeave={() => handleCloseSubPath(0)}>
+                          <div key={item.slug} className="relative" onMouseEnter={() => handleHoverSub(0, item.slug)} onMouseLeave={() => handleCloseSubPath(0)}>
                             <Link
                               href={`/products?category=${item.slug}`}
                               onClick={handleCloseAll}
@@ -208,11 +206,11 @@ export function DemoCategoryMegaMenu({mobileSidebarOpen: mobileSidebarOpenProp, 
                               <span>{item.name}</span>
                               <ChevronRightIcon className="size-4 shrink-0 opacity-70 text-chart-1" aria-hidden />
                             </Link>
-                            <SubFlyout items={item.child} parentLabel={item.name} isOpen={openSubPath[0] === item._id} onLinkClick={handleCloseAll} />
+                            <SubFlyout items={item.child} parentLabel={item.name} isOpen={openSubPath[0] === item.slug} onLinkClick={handleCloseAll} />
                           </div>
                         ) : (
                           <Link
-                            key={item._id}
+                            key={item.slug}
                             href={`/products?category=${item.slug}`}
                             onClick={handleCloseAll}
                             className="block px-2 py-1 text-sm text-foreground transition-colors hover:bg-chart-1 hover:text-white"
