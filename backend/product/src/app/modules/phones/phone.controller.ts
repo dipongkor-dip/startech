@@ -48,8 +48,9 @@ const createPhone = catchAsync(async (req: AuthenticatedRequest, res: Response, 
   }
 });
 
-const updatePhone = async (req: Request, res: Response) => {
-  const phone = await phoneService.updatePhone(req.params.id, req.body);
+const updatePhone = async (req: AuthenticatedRequest, res: Response) => {
+  const {userId} = req.token as JwtPayload;
+  const phone = await phoneService.updatePhone(req.params.id, req.body, userId);
   if (!phone) {
     return sendResponse(res, {
       status: StatusCodes.NOT_FOUND,

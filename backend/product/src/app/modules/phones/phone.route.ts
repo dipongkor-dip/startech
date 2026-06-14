@@ -1,14 +1,14 @@
 import {Router} from "express";
 import {catchAsync} from "../../utils/catchAsync";
 import {phoneController} from "./phone.controller";
-import {productPermission} from "../../middleware/product-permission";
+import {authorization, productPermission} from "../../middleware/product-permission";
 
 const route = Router();
 
 route.get("/", catchAsync(phoneController.getPhones));
 route.get("/:id", catchAsync(phoneController.getPhoneById));
 route.post("/", productPermission(), phoneController.createPhone);
-route.put("/:id", catchAsync(phoneController.updatePhone));
+route.patch("/:id", authorization(), catchAsync(phoneController.updatePhone));
 route.delete("/:id", catchAsync(phoneController.deletePhone));
 
 export const PhoneRoute = route;

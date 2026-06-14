@@ -9,6 +9,37 @@ export interface AuthenticatedRequest extends Request {
   token?: JwtPayload;
 }
 
+export const authorization = () => {
+  return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    const authHeader = req.headers["authorization"];
+    const accessToken = authHeader?.split(" ")[1] || req.cookies.accessToken;
+
+    if (!accessToken) throw new ServerError(status.BAD_REQUEST, "Token Not Found");
+
+    try {
+      const token = verifyToken(accessToken) as JwtPayload;
+      if (token.role !== "PRODUCT_MANAGER") throw new ServerError(status.UNAUTHORIZED, "Unauthorized User");
+
+      req.token = token as JwtPayload;
+
+      next();
+    } catch (error: any) {
+      console.error("❌ productPermission middleware error:", error);
+
+      // যদি custom ServerError হয়
+      if (error instanceof ServerError) {
+        return res.status(error.status).json({success: false, error: error.message});
+      }
+
+      // অন্য কোনো error হলে generic response দিন
+      return res.status(status.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        error: error.message || "Unexpected error occurred",
+      });
+    }
+  };
+};
+
 export const productPermission = () => {
   return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const authHeader = req.headers["authorization"];
