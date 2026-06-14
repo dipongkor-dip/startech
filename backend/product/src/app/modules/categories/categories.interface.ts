@@ -1,7 +1,8 @@
-import mongoose, { ObjectId } from "mongoose";
+import mongoose, {ObjectId} from "mongoose";
 
 export interface CategoryInt {
   name: string;
+  title?: string;
   description?: string;
   parentId?: mongoose.Types.ObjectId | null;
   children?: mongoose.Types.ObjectId[];
