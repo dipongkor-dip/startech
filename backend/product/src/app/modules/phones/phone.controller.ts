@@ -85,10 +85,23 @@ const deletePhone = async (req: Request, res: Response) => {
   });
 };
 
+const getProductManagerPhones = async (req: AuthenticatedRequest, res: Response) => {
+  const {userId} = req.token as JwtPayload;
+  const {categoryId} = req.params;
+  const phones = await phoneService.getProductManagerPhones(userId, categoryId);
+  return sendResponse(res, {
+    status: StatusCodes.OK,
+    success: true,
+    message: "Phones fetched successfully",
+    data: phones,
+  });
+};
+
 export const phoneController = {
   getPhones,
   getPhoneById,
   createPhone,
   updatePhone,
   deletePhone,
+  getProductManagerPhones,
 };

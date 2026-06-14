@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import {IQuery} from "../query/query.interface";
 import {IReview} from "../reviews/review.interface";
-import {IDescription} from "../description/description.interface";
+import { IDescription } from "../description/description.interface";
 
 export interface IQueries {
   queries: IQuery[];
@@ -20,14 +20,23 @@ export interface IPhoneOption {
   color?: string;
 }
 
+export enum ProductStatus {
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+  DELETE = "DELETE",
+}
+
 export interface IPhone {
   _id: mongoose.Types.ObjectId;
   brand: string;
+  categoryId: mongoose.Types.ObjectId;
+  permissionId: String;
   model: string;
   productCode?: string;
   price: number;
   discountPrice?: number;
   status?: "In Stock" | "Out of Stock" | "Coming Soon";
+  productStatus?: ProductStatus;
   options?: IPhoneOption[];
   display: string;
   processor: string;

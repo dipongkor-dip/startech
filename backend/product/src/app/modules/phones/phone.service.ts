@@ -1,10 +1,10 @@
 import {Phone} from "./phone.model";
-import {IPhone} from "./phone.interface";
+import {IPhone, ProductStatus} from "./phone.interface";
 import {sendRpcMessage} from "../../config/rabbitmq";
 import ServerError from "../../handler/ServerError";
 import status from "http-status";
 import {JwtPayload} from "jsonwebtoken";
-import {ObjectId} from "mongoose";
+import mongoose, {ObjectId} from "mongoose";
 
 // Map API field 'model' to schema field 'modelName'
 const toSchemaData = (data: Record<string, unknown>) => {
@@ -13,7 +13,7 @@ const toSchemaData = (data: Record<string, unknown>) => {
 };
 
 const getPhones = async () => {
-  const phones = await Phone.find().sort({createdAt: -1}).lean();
+  const phones = await Phone.find({productStatus: ProductStatus.ACTIVE}).sort({createdAt: -1}).lean();
   return phones.map((p: Record<string, unknown>) => ({
     ...p,
     model: p.modelName ?? p.model,
@@ -63,10 +63,28 @@ const deletePhone = async (id: string) => {
   return {...p, model: p.modelName ?? p.model, modelName: undefined};
 };
 
+const getProductManagerPhones = async (userId: string, categoryId: string) => {
+  const response = await sendRpcMessage<{success: boolean; permissionId: string; error?: string}>("product_permission", "product_per_response", {categoryId, userId});
+
+  if (!response.success || !response.permissionId) {
+    throw new ServerError(status.UNAUTHORIZED, response.error || "Unauthorized User");
+  }
+
+  const phones = await Phone.find({
+    permissionId: response.permissionId,
+    productStatus: {$in: [ProductStatus.ACTIVE, ProductStatus.INACTIVE]},
+  })
+    .sort({createdAt: -1})
+    .lean();
+
+  return phones;
+};
+
 export const phoneService = {
   getPhones,
   getPhoneById,
   createPhone,
   updatePhone,
   deletePhone,
+  getProductManagerPhones,
 };
