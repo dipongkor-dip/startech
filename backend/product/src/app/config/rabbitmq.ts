@@ -1,8 +1,9 @@
 // rabbitmq.ts
 import amqp from "amqplib";
 import env from "../env";
-import {categoryCheckListener} from "../modules/categories/categories.consumer";
+
 import {randomUUID} from "crypto";
+import {categoryCheckListener} from "../modules/shared/categories/categories.consumer";
 
 let channel: amqp.Channel;
 

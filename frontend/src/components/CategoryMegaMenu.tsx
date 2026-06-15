@@ -10,11 +10,24 @@ import {Button} from "@base-ui/react";
 import {useRouter} from "next/navigation";
 import {NavCategory} from "@/app/(software)/(products)/layout";
 
-function SubFlyout({categories, parentLabel, isOpen, onLinkClick}: {categories: NavCategory[]; parentLabel: string; isOpen: boolean; onLinkClick: () => void}) {
+function SubFlyout({
+  categories,
+  parentLabel,
+  isOpen,
+  onLinkClick,
+  direction = "right",
+}: {
+  categories: NavCategory[];
+  parentLabel: string;
+  isOpen: boolean;
+  onLinkClick: () => void;
+  direction?: "left" | "right";
+}) {
   return (
     <div
       className={cn(
-        "absolute left-full top-0 z-50 min-w-[10rem] shadow-sm transition-all duration-150 bg-background",
+        "absolute top-0 z-50 min-w-[10rem] shadow-sm transition-all duration-150 bg-background",
+        direction === "right" ? "left-full" : "right-full",
         isOpen ? "visible opacity-100" : "invisible opacity-0",
         "border bg-popover py-1 text-popover-foreground",
       )}
@@ -22,12 +35,7 @@ function SubFlyout({categories, parentLabel, isOpen, onLinkClick}: {categories: 
       aria-label={`${parentLabel} subcategories`}
     >
       {categories.map((s) => (
-        <Link
-          key={s.slug}
-          href={`/${s.slug}`}
-          onClick={onLinkClick}
-          className="block px-3 py-1 text-sm transition-colors hover:bg-chart-1 hover:text-white"
-        >
+        <Link key={s.slug} href={`/${s.slug}`} onClick={onLinkClick} className="block px-3 py-1 text-sm transition-colors hover:bg-chart-1 hover:text-white">
           {s.name}
         </Link>
       ))}
@@ -62,11 +70,36 @@ function renderMobileItems(categories: NavCategory[], level: number, onSelect: (
 
 interface CategoryMegaMenuProps {
   categories: NavCategory[];
+  loading?: boolean;
   mobileSidebarOpen?: boolean;
   onMobileSidebarOpenChange?: (open: boolean) => void;
 }
 
-export function CategoryMegaMenu({categories, mobileSidebarOpen: mobileSidebarOpenProp, onMobileSidebarOpenChange}: CategoryMegaMenuProps) {
+function useLoadingSuspense(loading: boolean) {
+  const promiseRef = React.useRef<Promise<void> | null>(null);
+  const resolveRef = React.useRef<(() => void) | null>(null);
+
+  if (loading && !promiseRef.current) {
+    promiseRef.current = new Promise((resolve) => {
+      resolveRef.current = resolve;
+    });
+  }
+
+  React.useEffect(() => {
+    if (!loading && resolveRef.current) {
+      resolveRef.current();
+      promiseRef.current = null;
+      resolveRef.current = null;
+    }
+  }, [loading]);
+
+  if (loading && promiseRef.current) {
+    throw promiseRef.current;
+  }
+}
+
+export function CategoryMegaMenu({categories, loading = false, mobileSidebarOpen: mobileSidebarOpenProp, onMobileSidebarOpenChange}: CategoryMegaMenuProps) {
+  useLoadingSuspense(loading);
   const router = useRouter();
   const [openCategory, setOpenCategory] = React.useState<string | null>(null);
   const [openSubPath, setOpenSubPath] = React.useState<string[]>([]);
@@ -167,14 +200,23 @@ export function CategoryMegaMenu({categories, mobileSidebarOpen: mobileSidebarOp
               >
                 <div className="border shadow-lg">
                   {category.child ? (
-                    <div className="relative bg-popover">
+                    <div
+                      className="relative bg-popover"
+                      style={{
+                        display: "grid",
+                        gridAutoFlow: "column",
+                        gridTemplateRows: "repeat(20, minmax(0, auto))",
+                        gridAutoColumns: "15rem",
+                        gap: "0.125rem",
+                      }}
+                    >
                       {category.child.map((item) =>
                         item.child && item.child.length > 0 ? (
-                          <div key={item.slug} className="relative" onMouseEnter={() => handleHoverSub(0, item.slug)} onMouseLeave={() => handleCloseSubPath(0)}>
+                          <div key={item.slug} className="relative w-full" onMouseEnter={() => handleHoverSub(0, item.slug)} onMouseLeave={() => handleCloseSubPath(0)}>
                             <Link
                               href={`/${item.slug}`}
                               onClick={handleCloseAll}
-                              className="flex child-center justify-between gap-2 px-2 py-1 text-sm text-foreground transition-colors hover:bg-chart-1 hover:text-white"
+                              className="flex child-center justify-between gap-2 px-2 py-1 text-sm text-foreground transition-colors hover:bg-chart-1 hover:text-white w-full"
                             >
                               <span>{item.name}</span>
                               <ChevronRightIcon className="size-4 shrink-0 opacity-70 text-chart-1" aria-hidden />
@@ -186,7 +228,7 @@ export function CategoryMegaMenu({categories, mobileSidebarOpen: mobileSidebarOp
                             key={item.slug}
                             href={`/${item.slug}`}
                             onClick={handleCloseAll}
-                            className="block px-2 py-1 text-sm text-foreground transition-colors hover:bg-chart-1 hover:text-white"
+                            className="block px-2 py-1 text-sm text-foreground transition-colors hover:bg-chart-1 hover:text-white w-full"
                           >
                             {item.name}
                           </Link>
@@ -196,6 +238,22 @@ export function CategoryMegaMenu({categories, mobileSidebarOpen: mobileSidebarOp
                   ) : null}
                 </div>
               </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </nav>
+  );
+}
+
+export function CategoryMegaMenuSkeleton() {
+  return (
+    <nav aria-label="categories" className="bg-card">
+      <div className="mx-auto max-w-7xl">
+        <ul className="hidden flex-wrap child-center xl:flex">
+          {Array.from({length: 6}).map((_, index) => (
+            <li key={index} className="relative py-2">
+              <div className="h-8 w-24 rounded bg-slate-600/20 animate-pulse" />
             </li>
           ))}
         </ul>

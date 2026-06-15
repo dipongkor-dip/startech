@@ -1,9 +1,9 @@
 import {Request, Response, NextFunction} from "express";
 import {StatusCodes} from "http-status-codes";
-import {sendResponse} from "../../utils/sendResponse";
+import {sendResponse} from "../../../utils/sendResponse";
 import {categoryService} from "./categories.service";
 import {CategoryInt} from "./categories.interface";
-import {catchAsync} from "../../utils/catchAsync";
+import {catchAsync} from "../../../utils/catchAsync";
 import {updateCategorySchema} from "./categories.model";
 import mongoose from "mongoose";
 

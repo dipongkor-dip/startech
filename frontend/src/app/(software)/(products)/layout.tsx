@@ -1,9 +1,9 @@
 "use client";
 
-import React, {useEffect, useState} from "react";
+import React, {Suspense, useEffect, useState} from "react";
 import Link from "next/link";
 import {MenuIcon, SearchIcon, ShoppingCartIcon} from "lucide-react";
-import {CategoryMegaMenu} from "@/components/CategoryMegaMenu";
+import {CategoryMegaMenu, CategoryMegaMenuSkeleton} from "@/components/CategoryMegaMenu";
 import {useAppDispatch, useAppSelector} from "@/store/hooks";
 import {fetchCategories} from "@/store/slices/product/api";
 
@@ -19,6 +19,7 @@ export default function Layout({children}: Readonly<{children: React.ReactNode}>
   const [query, setQuery] = useState("");
   const dispatch = useAppDispatch();
   const categories: NavCategory[] = useAppSelector((state) => state.products.categories) || [];
+  const categoriesLoading = useAppSelector((state) => state.products.categoriesLoading);
 
   useEffect(() => {
     dispatch(fetchCategories());
@@ -75,7 +76,9 @@ export default function Layout({children}: Readonly<{children: React.ReactNode}>
 
       {/* Sticky CategoryMegaMenu */}
       <div className="z-40 shadow-sm shadow-gray-300 dark:shadow-gray-800 xl:sticky xl:top-0">
-        <CategoryMegaMenu categories={categories || []} mobileSidebarOpen={mobileSidebarOpen} onMobileSidebarOpenChange={setMobileSidebarOpen} />
+        <Suspense fallback={<CategoryMegaMenuSkeleton />}>
+          <CategoryMegaMenu categories={categories || []} loading={categoriesLoading} mobileSidebarOpen={mobileSidebarOpen} onMobileSidebarOpenChange={setMobileSidebarOpen} />
+        </Suspense>
       </div>
       {children}
     </>

@@ -1,8 +1,7 @@
 import {Request, Response} from "express";
-import {sendResponse} from "../../utils/sendResponse";
+import {sendResponse} from "../../../utils/sendResponse";
 import {reviewService} from "./review.service";
 import {StatusCodes} from "http-status-codes";
-import {catchAsync} from "../../utils/catchAsync";
 
 const getByProductId = async (req: Request, res: Response) => {
   const data = await reviewService.getReviewsByProductId(req.params.phoneId);

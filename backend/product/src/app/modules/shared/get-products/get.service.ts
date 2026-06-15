@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
-import {category} from "../categories/categories.model";
-import ServerError from "../../handler/ServerError";
+
+import ServerError from "../../../handler/ServerError";
 import status from "http-status";
-import {Phone} from "../phones/phone.model";
+import {Phone} from "../../phones/phone.model";
+import { category } from "../categories/categories.model";
 
 type CategoryTree = {
   slug: string;
@@ -12,7 +13,7 @@ type CategoryTree = {
 const getAllCategories = async (parentId: mongoose.Types.ObjectId | string | null): Promise<CategoryTree[]> => {
   const nodes = await category
     .find({parentId: parentId ?? null})
-    .select("slug")
+    .select("slug name")
     .sort({autoNumber: 1, createdAt: 1})
     .lean()
     .exec();
@@ -20,14 +21,14 @@ const getAllCategories = async (parentId: mongoose.Types.ObjectId | string | nul
   return Promise.all(
     nodes.map(async (node: any) => {
       const children = await getAllCategories(node._id);
-      return {slug: node.slug, child: children};
+      return {slug: node.slug, name: node.name, child: children};
     }),
   );
 };
 
 export const getProductsService = async (filters: any) => {
-  const {slug, page = 1, limit = 20, sortBy = "desc", price, availability} = filters;
-  const skip = (page - 1) * limit;
+  const {slug, page = 1, limit = 16, sortBy = "default", price, availability} = filters;
+  const skip = (Number(page) - 1) * limit;
   const {0: minPrice, 1: maxPrice} = price.split(",");
   console.log(filters, minPrice, maxPrice);
 
@@ -39,11 +40,13 @@ export const getProductsService = async (filters: any) => {
   const eachCategoryLimit = nodes.length >= limit ? limit / nodes.length : limit;
   const childHas = nodes.length > 0 ? true : false;
 
-  console.log("child", childHas, eachCategoryLimit);
+  if (!childHas) {
+    console.log("child", childHas, eachCategoryLimit);
+  }
 
-  const totalProducts = Phone.countDocuments();
+  const totalProducts = await Phone.countDocuments();
 
-  const metaData = {total: totalProducts, page};
+  const metaData = {total: totalProducts, page: Number(page), limit: Number(limit)};
 
-  return nodes;
+  return {products: nodes, metaData};
 };

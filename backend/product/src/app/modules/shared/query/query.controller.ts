@@ -1,5 +1,5 @@
 import {Request, Response} from "express";
-import {sendResponse} from "../../utils/sendResponse";
+import {sendResponse} from "../../../utils/sendResponse";
 import {queryService} from "./query.service";
 import {StatusCodes} from "http-status-codes";
 

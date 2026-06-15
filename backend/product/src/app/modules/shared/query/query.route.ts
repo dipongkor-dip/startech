@@ -1,5 +1,5 @@
 import {Router} from "express";
-import {catchAsync} from "../../utils/catchAsync";
+import {catchAsync} from "../../../utils/catchAsync";
 import {queryController} from "./query.controller";
 
 const route = Router({mergeParams: true});

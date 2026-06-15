@@ -1,9 +1,10 @@
 import {Router, Request, Response} from "express";
 import {PhoneRoute} from "../modules/phones/phone.route";
-import {ReviewRoute} from "../modules/reviews/review.route";
-import {QueryRoute} from "../modules/query/query.route";
-import {CategoryRoute} from "../modules/categories/categories.route";
-import {getProducts} from "../modules/get-products/get.controller";
+import { ReviewRoute } from "../modules/shared/reviews/review.route";
+import { QueryRoute } from "../modules/shared/query/query.route";
+import { CategoryRoute } from "../modules/shared/categories/categories.route";
+import { getProducts } from "../modules/shared/get-products/get.controller";
+
 
 export const routes = Router();
 

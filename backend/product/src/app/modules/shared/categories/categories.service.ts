@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import {category, updateCategorySchema} from "./categories.model";
 import {CategoryInt} from "./categories.interface";
-import ServerError from "../../handler/ServerError";
+import ServerError from "../../../handler/ServerError";
 import {StatusCodes} from "http-status-codes";
 
 type CategoryTree = {

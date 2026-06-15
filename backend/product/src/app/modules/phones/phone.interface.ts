@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
-import {IQuery} from "../query/query.interface";
-import {IReview} from "../reviews/review.interface";
-import { IDescription } from "../description/description.interface";
+import { IQuery } from "../shared/query/query.interface";
+import { IReview } from "../shared/reviews/review.interface";
+import { IDescription } from "../shared/description/description.interface";
+
 
 export interface IQueries {
   queries: IQuery[];

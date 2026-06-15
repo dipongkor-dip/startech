@@ -3,8 +3,7 @@ import {IPhone, ProductStatus} from "./phone.interface";
 import {sendRpcMessage} from "../../config/rabbitmq";
 import ServerError from "../../handler/ServerError";
 import status from "http-status";
-import {JwtPayload} from "jsonwebtoken";
-import mongoose, {ObjectId} from "mongoose";
+import {ObjectId} from "mongoose";
 
 // Map API field 'model' to schema field 'modelName'
 const toSchemaData = (data: Record<string, unknown>) => {
