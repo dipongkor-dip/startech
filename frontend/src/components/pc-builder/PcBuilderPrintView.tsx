@@ -62,7 +62,7 @@ export function PcBuilderPrintView() {
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 print:hidden">
           <p className="text-sm text-muted-foreground">Print preview opens automatically. Use your browser to save as PDF.</p>
           <div className="flex gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={() => window.print()}>
+            <Button type="button" size="sm" onClick={() => window.print()}>
               Print again
             </Button>
             <Link href="/pc-builder" className={buttonVariants({size: "sm"})}>

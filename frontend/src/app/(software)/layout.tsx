@@ -1,13 +1,10 @@
-import {DemoSiteChrome} from "@/components/DemoChrome";
-import DemoNavbar from "@/components/DemoNavbar";
+import Navbar from "@/components/Navbar";
 import {RootFooter} from "@/components/footer/RootFooter";
-import {SiteChrome} from "@/components/SiteChrome";
 
-export default function SoftwareLayout({children}: Readonly<{children: React.ReactNode}>) {
-  // return <SiteChrome>{children}</SiteChrome>;
+export default function layout({children}: Readonly<{children: React.ReactNode}>) {
   return (
     <>
-      <DemoNavbar></DemoNavbar>
+      <Navbar></Navbar>
       {children}
       <RootFooter />
     </>

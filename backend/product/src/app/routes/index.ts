@@ -2,7 +2,8 @@ import {Router, Request, Response} from "express";
 import {PhoneRoute} from "../modules/phones/phone.route";
 import {ReviewRoute} from "../modules/reviews/review.route";
 import {QueryRoute} from "../modules/query/query.route";
-import { CategoryRoute } from "../modules/categories/categories.route";
+import {CategoryRoute} from "../modules/categories/categories.route";
+import {getProducts} from "../modules/get-products/get.controller";
 
 export const routes = Router();
 
@@ -20,3 +21,4 @@ routes.use("/phones/:phoneId/reviews", ReviewRoute);
 routes.use("/phones/:phoneId/queries", QueryRoute);
 routes.use("/phones", PhoneRoute);
 routes.use("/categories", CategoryRoute);
+routes.use("/products", getProducts);

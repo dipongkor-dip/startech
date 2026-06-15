@@ -3,7 +3,7 @@
 import React, {useEffect, useState} from "react";
 import Link from "next/link";
 import {MenuIcon, SearchIcon, ShoppingCartIcon} from "lucide-react";
-import {DemoCategoryMegaMenu} from "@/components/DemoCategoryMegaMenu";
+import {CategoryMegaMenu} from "@/components/CategoryMegaMenu";
 import {useAppDispatch, useAppSelector} from "@/store/hooks";
 import {fetchCategories} from "@/store/slices/product/api";
 
@@ -75,7 +75,7 @@ export default function Layout({children}: Readonly<{children: React.ReactNode}>
 
       {/* Sticky CategoryMegaMenu */}
       <div className="z-40 shadow-sm shadow-gray-300 dark:shadow-gray-800 xl:sticky xl:top-0">
-        <DemoCategoryMegaMenu categories={categories || []} mobileSidebarOpen={mobileSidebarOpen} onMobileSidebarOpenChange={setMobileSidebarOpen} />
+        <CategoryMegaMenu categories={categories || []} mobileSidebarOpen={mobileSidebarOpen} onMobileSidebarOpenChange={setMobileSidebarOpen} />
       </div>
       {children}
     </>

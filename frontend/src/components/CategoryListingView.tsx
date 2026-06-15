@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import {useSearchParams} from "next/navigation";
+import {useSearchParams, useRouter, usePathname} from "next/navigation";
 import {HomeIcon} from "lucide-react";
 import {Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator} from "@/components/ui/breadcrumb";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
@@ -10,7 +10,7 @@ import {cn} from "@/lib/utils";
 import type {Category} from "@/store/slices/product/interface";
 import {getMockProducts} from "@/lib/category-listing";
 import {CategoryProductCard} from "@/components/category/CategoryProductCard";
-import {DemoFilter} from "@/components/DemoFilters";
+import {Filter} from "@/components/Filters";
 import {PaginationFilter} from "@/components/pagination/PaginationFilter";
 import {useAppDispatch, useAppSelector} from "@/store/hooks";
 import {fetchCategories} from "@/store/slices/product/api";
@@ -39,7 +39,7 @@ function buildParentChain(categories: Category[], slug: string | null): Category
   return [];
 }
 
-export default function DemoCategoryListingView({slug, query}: {slug: string | null; query: any}) {
+export default function CategoryListingView({slug, query}: {slug: string | null; query: any}) {
   const dispatch = useAppDispatch();
   const categories = useAppSelector((state) => state.products.categories);
   const categoriesLoading = useAppSelector((state) => state.products.categoriesLoading);
@@ -47,7 +47,9 @@ export default function DemoCategoryListingView({slug, query}: {slug: string | n
   const [matchedCategory, setMatchedCategory] = React.useState<Category | null>(null);
   const [parentChain, setParentChain] = React.useState<Category[]>([]);
   const searchParams = useSearchParams();
-  const [pageSize, setPageSize] = React.useState<string>(searchParams.get("limit") || "12");
+  const router = useRouter();
+  const pathname = usePathname();
+  const [pageSize, setPageSize] = React.useState<string>(searchParams.get("limit") || "16");
   const [sortBy, setSortBy] = React.useState<string>(searchParams.get("sortBy") || "default");
   const [currentPage, setCurrentPage] = React.useState<number>(parseInt(searchParams.get("page") || "1"));
 
@@ -76,8 +78,10 @@ export default function DemoCategoryListingView({slug, query}: {slug: string | n
     setCurrentPage(normalizedPage);
     const newSearchParams = new URLSearchParams(searchParams.toString());
     newSearchParams.set("limit", pageSize);
-    newSearchParams.set("sortBy", sortBy);
+    // do not persist sortBy when changing pages
+    newSearchParams.delete("sortBy");
     newSearchParams.set("page", normalizedPage.toString());
+    router.push(`${pathname}?${newSearchParams.toString()}`);
   };
 
   const products = getMockProducts();
@@ -137,7 +141,7 @@ export default function DemoCategoryListingView({slug, query}: {slug: string | n
 
       <div className="mx-auto w-full max-w-7xl flex flex-col gap-6 lg:flex-row lg:gap-8">
         {/** category filters */}
-        <DemoFilter />
+        <Filter />
 
         <div className="min-w-0 flex-1 space-y-4">
           {/** Products header */}
@@ -154,8 +158,9 @@ export default function DemoCategoryListingView({slug, query}: {slug: string | n
                       setCurrentPage(1);
                       const newSearchParams = new URLSearchParams(searchParams.toString());
                       newSearchParams.set("limit", v);
-                      newSearchParams.set("sortBy", sortBy);
+                      // keep existing sortBy value in URL; do not overwrite
                       newSearchParams.set("page", "1");
+                      router.push(`${pathname}?${newSearchParams.toString()}`);
                     }
                   }}
                 >
@@ -163,14 +168,14 @@ export default function DemoCategoryListingView({slug, query}: {slug: string | n
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="rounded-none border-none bg-card">
-                    <SelectItem value="12" className="hover:bg-blue-600 hover:text-white">
-                      12
+                    <SelectItem value="16" className="hover:bg-blue-600 hover:text-white">
+                      16
                     </SelectItem>
-                    <SelectItem value="24" className="hover:bg-blue-600 hover:text-white">
-                      24
+                    <SelectItem value="26" className="hover:bg-blue-600 hover:text-white">
+                      26
                     </SelectItem>
-                    <SelectItem value="36" className="hover:bg-blue-600 hover:text-white">
-                      36
+                    <SelectItem value="32" className="hover:bg-blue-600 hover:text-white">
+                      32
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -182,11 +187,10 @@ export default function DemoCategoryListingView({slug, query}: {slug: string | n
                   onValueChange={(v) => {
                     if (v) {
                       setSortBy(v);
-                      setCurrentPage(1);
                       const newSearchParams = new URLSearchParams(searchParams.toString());
-                      newSearchParams.set("limit", pageSize);
+                      // keep existing limit and page values in URL; only update sortBy
                       newSearchParams.set("sortBy", v);
-                      newSearchParams.set("page", "1");
+                      router.push(`${pathname}?${newSearchParams.toString()}`);
                     }
                   }}
                 >

@@ -29,7 +29,7 @@ function FilterRow({id, label, checked, onCheckedChange}: FilterCheckboxProps) {
   );
 }
 
-export function DemoFilter() {
+export function Filter() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
