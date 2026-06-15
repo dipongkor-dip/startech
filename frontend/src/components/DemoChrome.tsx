@@ -12,9 +12,10 @@ export function DemoSiteChrome({children}: {children: React.ReactNode}) {
 
   return (
     <>
-      {!isPcBuilderPrint ? <DemoNavbar /> : null}
+      {/* {!isPcBuilderPrint ? <DemoNavbar /> : null} */}
+      <DemoNavbar />
       <main className="min-h-0 flex flex-1 flex-col">{children}</main>
-      {!isPcBuilderPrint ? (isDashboard ? <DashboardFooter /> : <RootFooter />) : null}
+      <RootFooter />
     </>
   );
 }

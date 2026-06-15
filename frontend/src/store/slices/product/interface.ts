@@ -1,3 +1,11 @@
+export interface Category {
+  slug: string;
+  name: string;
+  isActive: boolean;
+  autoNumber: number | null;
+  child?: Category[];
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -14,13 +22,19 @@ export interface Product {
 export interface ProductState {
   products: Product[];
   currentProduct: Product | null;
+  categories: Category[];
   loading: boolean;
   error: string | null;
+  categoriesLoading: boolean;
+  categoriesError: string | null;
 }
 
 export const initialState: ProductState = {
   products: [],
   currentProduct: null,
+  categories: [],
   loading: false,
   error: null,
+  categoriesLoading: false,
+  categoriesError: null,
 };

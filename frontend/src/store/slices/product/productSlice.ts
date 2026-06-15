@@ -1,6 +1,6 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import { initialState, Product } from "./interface";
-import { fetchProducts, fetchProductById, createProduct, updateProduct, deleteProduct } from "./api";
+import { initialState, Category, Product } from "./interface";
+import { fetchProducts, fetchProductById, createProduct, updateProduct, deleteProduct, fetchCategories } from "./api";
 
 const productSlice = createSlice({
   name: "products",
@@ -9,8 +9,12 @@ const productSlice = createSlice({
     setCurrentProduct: (state, action: PayloadAction<Product | null>) => {
       state.currentProduct = action.payload;
     },
+    addCate: (state, action: PayloadAction<Category[]>) => {
+      state.categories = action.payload;
+    },
     clearError: (state) => {
       state.error = null;
+      state.categoriesError = null;
     },
     reset: () => initialState,
   },
@@ -89,9 +93,22 @@ const productSlice = createSlice({
       .addCase(deleteProduct.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Failed to delete product";
+      })
+      // Fetch categories
+      .addCase(fetchCategories.pending, (state) => {
+        state.categoriesLoading = true;
+        state.categoriesError = null;
+      })
+      .addCase(fetchCategories.fulfilled, (state, action) => {
+        state.categoriesLoading = false;
+        state.categories = action.payload;
+      })
+      .addCase(fetchCategories.rejected, (state, action) => {
+        state.categoriesLoading = false;
+        state.categoriesError = action.payload || "Failed to fetch categories";
       });
   },
 });
 
-export const {setCurrentProduct, clearError, reset} = productSlice.actions;
+export const {setCurrentProduct, addCate, clearError, reset} = productSlice.actions;
 export default productSlice.reducer;

@@ -7,34 +7,10 @@ import {cn} from "@/lib/utils";
 import {SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel} from "@/components/ui/sidebar";
 import {Sheet, SheetContent} from "@/components/ui/sheet";
 import {Button} from "@base-ui/react";
-import {usePathname, useRouter, useSearchParams} from "next/navigation";
+import {useRouter} from "next/navigation";
+import {NavCategory} from "@/app/(software)/(products)/layout";
 
-type NavCategory = {
-  slug: string;
-  name: string;
-  child?: NavCategory[];
-};
-
-const NAV_CATEGORIES: NavCategory[] = [
-  {
-
-    name: "Desktop",
-    slug: "desktops",
-    child: [
-      { name: "Desktop Offer", slug: "desktop-offer"},
-      {
-        name: "Star PC",
-        slug: "star-pc",
-        child: [
-          {name: "Intel PC", slug: "star-intel-pc"},
-          { name: "Ryzen PC", slug: "star-ryzen-pc"},
-        ],
-      },
-    ],
-  },
-];
-
-function SubFlyout({items, parentLabel, isOpen, onLinkClick}: {items: NavCategory[]; parentLabel: string; isOpen: boolean; onLinkClick: () => void}) {
+function SubFlyout({categories, parentLabel, isOpen, onLinkClick}: {categories: NavCategory[]; parentLabel: string; isOpen: boolean; onLinkClick: () => void}) {
   return (
     <div
       className={cn(
@@ -45,10 +21,10 @@ function SubFlyout({items, parentLabel, isOpen, onLinkClick}: {items: NavCategor
       role="menu"
       aria-label={`${parentLabel} subcategories`}
     >
-      {items.map((s) => (
+      {categories.map((s) => (
         <Link
           key={s.slug}
-          href={`/products?category=${s.slug}`}
+          href={`/${s.slug}`}
           onClick={onLinkClick}
           className="block px-3 py-1 text-sm transition-colors hover:bg-chart-1 hover:text-white"
         >
@@ -59,13 +35,13 @@ function SubFlyout({items, parentLabel, isOpen, onLinkClick}: {items: NavCategor
   );
 }
 
-function renderMobileItems(items: NavCategory[], level: number, onSelect: (categoryId: string) => void, onClose: () => void) {
+function renderMobileItems(categories: NavCategory[], level: number, onSelect: (categoryId: string) => void, onClose: () => void) {
   return (
     <div className={cn(level === 0 ? "space-y-1" : "ml-4 space-y-1")}>
-      {items.map((item, index) => (
+      {categories.map((item, index) => (
         <div key={`${item.slug || item.name}-${level}-${index}`}>
           <Link
-            href={`/products?category=${item.slug}`}
+            href={`/${item.slug}`}
             onClick={() => {
               onSelect(item.slug);
               onClose();
@@ -84,15 +60,14 @@ function renderMobileItems(items: NavCategory[], level: number, onSelect: (categ
   );
 }
 
-type CategoryMegaMenuProps = {
+interface CategoryMegaMenuProps {
+  categories: NavCategory[];
   mobileSidebarOpen?: boolean;
   onMobileSidebarOpenChange?: (open: boolean) => void;
-};
+}
 
-export function DemoCategoryMegaMenu({mobileSidebarOpen: mobileSidebarOpenProp, onMobileSidebarOpenChange}: CategoryMegaMenuProps = {}) {
-  const searchParams = useSearchParams();
+export function DemoCategoryMegaMenu({categories, mobileSidebarOpen: mobileSidebarOpenProp, onMobileSidebarOpenChange}: CategoryMegaMenuProps) {
   const router = useRouter();
-  const pathname = usePathname();
   const [openCategory, setOpenCategory] = React.useState<string | null>(null);
   const [openSubPath, setOpenSubPath] = React.useState<string[]>([]);
   const [openMobileCategory, setOpenMobileCategory] = React.useState<string | null>(null);
@@ -109,9 +84,7 @@ export function DemoCategoryMegaMenu({mobileSidebarOpen: mobileSidebarOpenProp, 
   );
 
   const setPath = (category: string) => {
-    const newSearchParams = new URLSearchParams(searchParams.toString());
-    newSearchParams.set("category", category);
-    router.push(`/products?${newSearchParams.toString()}`);
+    router.push(`/${category}`);
   };
 
   const handleHoverSub = React.useCallback((depth: number, id: string) => {
@@ -128,7 +101,7 @@ export function DemoCategoryMegaMenu({mobileSidebarOpen: mobileSidebarOpenProp, 
   }, []);
 
   return (
-    <nav aria-name="Product categories" className="bg-card">
+    <nav aria-label="categories" className="bg-card">
       <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
         <SheetContent side="left" className="w-[18rem] border-r bg-sidebar p-0 text-sidebar-foreground sm:max-w-none">
           <SidebarContent>
@@ -136,7 +109,7 @@ export function DemoCategoryMegaMenu({mobileSidebarOpen: mobileSidebarOpenProp, 
               <SidebarGroupLabel className="text-sm font-semibold text-sidebar-foreground">Categories</SidebarGroupLabel>
               <SidebarGroupContent>
                 <div className="space-y-0">
-                  {NAV_CATEGORIES.map((category) => (
+                  {categories.map((category) => (
                     <div key={category.name} className="border-b border-sidebar-border last:border-b-0">
                       <button
                         type="button"
@@ -171,7 +144,7 @@ export function DemoCategoryMegaMenu({mobileSidebarOpen: mobileSidebarOpenProp, 
       </Sheet>
       <div className="mx-auto max-w-7xl">
         <ul className="hidden flex-wrap child-center xl:flex">
-          {NAV_CATEGORIES.map((category) => (
+          {categories.map((category) => (
             <li key={category.name} className="relative py-2" onMouseEnter={() => setOpenCategory(category.name)} onMouseLeave={handleCloseAll}>
               <Button
                 onClick={() => {
@@ -199,19 +172,19 @@ export function DemoCategoryMegaMenu({mobileSidebarOpen: mobileSidebarOpenProp, 
                         item.child && item.child.length > 0 ? (
                           <div key={item.slug} className="relative" onMouseEnter={() => handleHoverSub(0, item.slug)} onMouseLeave={() => handleCloseSubPath(0)}>
                             <Link
-                              href={`/products?category=${item.slug}`}
+                              href={`/${item.slug}`}
                               onClick={handleCloseAll}
                               className="flex child-center justify-between gap-2 px-2 py-1 text-sm text-foreground transition-colors hover:bg-chart-1 hover:text-white"
                             >
                               <span>{item.name}</span>
                               <ChevronRightIcon className="size-4 shrink-0 opacity-70 text-chart-1" aria-hidden />
                             </Link>
-                            <SubFlyout items={item.child} parentLabel={item.name} isOpen={openSubPath[0] === item.slug} onLinkClick={handleCloseAll} />
+                            <SubFlyout categories={item.child} parentLabel={item.name} isOpen={openSubPath[0] === item.slug} onLinkClick={handleCloseAll} />
                           </div>
                         ) : (
                           <Link
                             key={item.slug}
-                            href={`/products?category=${item.slug}`}
+                            href={`/${item.slug}`}
                             onClick={handleCloseAll}
                             className="block px-2 py-1 text-sm text-foreground transition-colors hover:bg-chart-1 hover:text-white"
                           >

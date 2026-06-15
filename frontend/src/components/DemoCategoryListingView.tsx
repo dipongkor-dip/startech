@@ -7,15 +7,46 @@ import {HomeIcon} from "lucide-react";
 import {Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator} from "@/components/ui/breadcrumb";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {cn} from "@/lib/utils";
-import type {CategoryListingResolved, MockProduct} from "@/lib/category-listing";
+import type {Category} from "@/store/slices/product/interface";
 import {getMockProducts} from "@/lib/category-listing";
 import {CategoryProductCard} from "@/components/category/CategoryProductCard";
 import {DemoFilter} from "@/components/DemoFilters";
 import {PaginationFilter} from "@/components/pagination/PaginationFilter";
+import {useAppDispatch, useAppSelector} from "@/store/hooks";
+import {fetchCategories} from "@/store/slices/product/api";
 
-export default function Products({products = getMockProducts()}: {listing?: CategoryListingResolved; products?: MockProduct[]}) {
+function findCategoryBySlug(categories: Category[], slug?: string | null): Category | null {
+  if (!slug) return null;
+
+  for (const category of categories) {
+    if (category.slug === slug) return category;
+    const childMatch = findCategoryBySlug(category.child ?? [], slug);
+    if (childMatch) return childMatch;
+  }
+
+  return null;
+}
+
+function buildParentChain(categories: Category[], slug: string | null): Category[] {
+  if (!slug) return [];
+
+  for (const category of categories) {
+    if (category.slug === slug) return [category];
+    const childMatch = buildParentChain(category.child ?? [], slug);
+    if (childMatch.length > 0) return [category, ...childMatch];
+  }
+
+  return [];
+}
+
+export default function DemoCategoryListingView({slug, query}: {slug: string | null; query: any}) {
+  const dispatch = useAppDispatch();
+  const categories = useAppSelector((state) => state.products.categories);
+  const categoriesLoading = useAppSelector((state) => state.products.categoriesLoading);
+  const categoriesError = useAppSelector((state) => state.products.categoriesError);
+  const [matchedCategory, setMatchedCategory] = React.useState<Category | null>(null);
+  const [parentChain, setParentChain] = React.useState<Category[]>([]);
   const searchParams = useSearchParams();
-  const categoryId = searchParams.get("category");
   const [pageSize, setPageSize] = React.useState<string>(searchParams.get("limit") || "12");
   const [sortBy, setSortBy] = React.useState<string>(searchParams.get("sortBy") || "default");
   const [currentPage, setCurrentPage] = React.useState<number>(parseInt(searchParams.get("page") || "1"));
@@ -23,8 +54,22 @@ export default function Products({products = getMockProducts()}: {listing?: Cate
   const totalItems = 30;
   const limit = Math.max(1, Number(pageSize));
   const totalPages = Math.max(1, Math.ceil(totalItems / limit));
-  
-  const sectionLabel = categoryId || "Products";
+
+  React.useEffect(() => {
+    if (!categories.length && !categoriesLoading && !categoriesError) {
+      dispatch(fetchCategories());
+    }
+  }, [categories.length, categoriesLoading, categoriesError, dispatch]);
+
+  React.useEffect(() => {
+    if (slug && categories.length) {
+      setMatchedCategory(findCategoryBySlug(categories, slug));
+      setParentChain(buildParentChain(categories, slug));
+    }
+  }, [slug, categories]);
+
+  const sectionLabel = matchedCategory?.name || "Products";
+  const childCategories = matchedCategory?.child ?? [];
 
   const handlePageChange = (page: number) => {
     const normalizedPage = Math.min(Math.max(1, page), totalPages);
@@ -35,6 +80,8 @@ export default function Products({products = getMockProducts()}: {listing?: Cate
     newSearchParams.set("page", normalizedPage.toString());
   };
 
+  const products = getMockProducts();
+
   return (
     <>
       <div className="bg-white dark:bg-card mb-3 shadow-sm py-5">
@@ -42,42 +89,49 @@ export default function Products({products = getMockProducts()}: {listing?: Cate
         <div className="mx-auto max-w-7xl">
           <Breadcrumb>
             <BreadcrumbList>
-              {/* {crumbs.map((c, i) => ( */}
-              {/* <React.Fragment key={`${c.href}-${i}`}> */}
-              <React.Fragment>
-                {/* {i > 0 ? <BreadcrumbSeparator /> : null} */}
-                <BreadcrumbItem>
-                  <BreadcrumbLink render={<Link href={"/fasdf"} className="inline-flex items-center gap-1" aria-label={"asdf"} />}>
-                    <HomeIcon className="size-4" />
-                    Home
-                    <span className="sr-only">asdf</span>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-              </React.Fragment>
-              {/* ))} */}
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link href="/" className="inline-flex items-center gap-1" />}>
+                  <HomeIcon className="size-4" />
+                  <span className="sr-only">Home</span>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+
+              {parentChain.map((parent, i) => (
+                <React.Fragment key={`${parent.slug}-${i}`}>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    {i === parentChain.length - 1 ? (
+                      <BreadcrumbPage>{parent.name}</BreadcrumbPage>
+                    ) : (
+                      <BreadcrumbLink render={<Link href={`/${parent.slug}`} />}>{parent.name}</BreadcrumbLink>
+                    )}
+                  </BreadcrumbItem>
+                </React.Fragment>
+              ))}
             </BreadcrumbList>
           </Breadcrumb>
         </div>
 
         <div className="max-w-7xl mx-auto space-y-2">
           <header className="max-w-3xl pt-3">
-            <h1 className="font-heading text-xl font-semibold tracking-tight text-foreground md:text-2xl">title </h1>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">listing description</p>
+            <h1 className="font-heading text-xl font-semibold tracking-tight text-foreground md:text-2xl">{matchedCategory?.name || "Products"}</h1>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Browse all {matchedCategory?.name || "products"} available in our store</p>
           </header>
 
-          {/** existing categories */}
-
-          <div className="flex flex-wrap gap-2 pt-4">
-            <Link
-              href={"/"}
-              className={cn(
-                "inline-flex rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
-                "border-orange-500 bg-orange-50 text-orange-600 dark:bg-orange-950/40",
-              )}
-            >
-              asfasdfsadf
-            </Link>
-          </div>
+          {/** exiting categories */}
+          {childCategories.length > 0 ? (
+            <div className="flex flex-wrap gap-2 pt-4">
+              {childCategories.map((child) => (
+                <Link
+                  key={child.slug}
+                  href={`/${child.slug}`}
+                  className={cn("inline-flex rounded-full border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-accent", "")}
+                >
+                  {child.name}
+                </Link>
+              ))}
+            </div>
+          ) : null}
         </div>
       </div>
 
