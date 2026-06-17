@@ -78,7 +78,7 @@ const specificationSchema = new Schema(
 const PhoneSchema = new Schema(
   {
     brand: {type: String, required: true, trim: true},
-    categoryId: {type: Schema.Types.ObjectId, ref: "Category", required: true},
+    categoryId: {type: Schema.Types.ObjectId, ref: "Category", required: true, index: true},
     permissionId: {type: String, required: true},
     modelName: {type: String, required: true, trim: true, unique: true},
     productCode: {type: String, default: "", unique: true},

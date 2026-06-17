@@ -4,6 +4,7 @@ import {JwtPayload} from "jsonwebtoken";
 import status from "http-status";
 import {sendRpcMessage} from "../config/rabbitmq";
 import ServerError from "../handler/ServerError";
+import {category} from "../modules/shared/categories/categories.model";
 
 export interface AuthenticatedRequest extends Request {
   token?: JwtPayload;
@@ -51,11 +52,19 @@ export const productPermission = () => {
       const token = verifyToken(accessToken) as JwtPayload;
       if (token.role !== "PRODUCT_MANAGER") throw new ServerError(status.UNAUTHORIZED, "Unauthorized User");
 
+      const {permissionId} = req.params;
       const {categoryId} = req.body;
+
+      if (!permissionId || !categoryId) throw new ServerError(status.PRECONDITION_REQUIRED, !permissionId ? "Required PermissionId" : "Required CategoryId");
+
+      const cat = await category.findById(categoryId);
+      if (!cat) throw new ServerError(status.UNAUTHORIZED, "Category ID Must be child Id");
+      const catPar = await category.find({parentId: cat.id});
+      if (catPar.length > 0) throw new ServerError(status.UNAUTHORIZED, "Category ID Must be child Id");
 
       // // rabbitmq call product permission check
       const response = await sendRpcMessage<{success: boolean; permissionId: string; error?: string}>("product_permission", "product_per_response", {
-        categoryId,
+        permissionId,
         userId: token.userId as string,
       });
 

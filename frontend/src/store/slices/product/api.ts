@@ -45,8 +45,8 @@ export const fetchCategoriesAPI = async (): Promise<Category[]> => {
 };
 
 // API functions
-const fetchProductsAPI = async (): Promise<Product[]> => {
-  const res = await fetch(getProductsBaseUrl(), {
+const fetchProductsAPI = async (params: any): Promise<Product[]> => {
+  const res = await fetch(`${getProductsBaseUrl()}?${params}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -59,7 +59,7 @@ const fetchProductsAPI = async (): Promise<Product[]> => {
     throw new Error(data.message || data.error || "Failed to fetch products");
   }
 
-  return data.products || data;
+  return data.data;
 };
 
 const fetchProductByIdAPI = async (id: string): Promise<Product> => {
@@ -130,9 +130,9 @@ const deleteProductAPI = async (id: string): Promise<void> => {
 };
 
 // Redux thunks
-export const fetchProducts = createAsyncThunk<Product[], void, {rejectValue: string}>("products/fetchProducts", async (_, {rejectWithValue}) => {
+export const fetchProducts = createAsyncThunk<Product[], void, {rejectValue: string}>("products/fetchProducts", async (params: any, {rejectWithValue}) => {
   try {
-    return await fetchProductsAPI();
+    return await fetchProductsAPI(params);
   } catch (error) {
     return rejectWithValue(error instanceof Error ? error.message : "Failed to fetch products");
   }

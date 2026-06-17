@@ -11,18 +11,21 @@ import {
   PaginationEllipsis,
 } from "@/components/ui/pagination";
 import {cn} from "@/lib/utils";
+import {usePathname, useRouter, useSearchParams} from "next/navigation";
 
 export interface PaginationProps {
-  currentPage: number;
-  pageSize: number;
-  totalItems: number;
-  onPageChange: (page: number) => void;
+  page: number;
+  limit: number;
+  total: number;
   className?: string;
   siblingCount?: number;
 }
 
-export function PaginationFilter({currentPage, pageSize, totalItems, onPageChange, className, siblingCount = 1}: PaginationProps) {
-  const totalPages = Math.max(1, Math.ceil(totalItems / Math.max(1, pageSize)));
+export function PaginationFilter({page = 1, limit = 16, total, className, siblingCount = 1}: PaginationProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const totalPages = Math.max(1, Math.ceil(total / Math.max(1, limit)));
 
   const paginationRange = React.useMemo<Array<number | "left-ellipsis" | "right-ellipsis">>(() => {
     const totalPageNumbers = siblingCount * 2 + 5;
@@ -31,8 +34,8 @@ export function PaginationFilter({currentPage, pageSize, totalItems, onPageChang
       return Array.from({length: totalPages}, (_, i) => i + 1);
     }
 
-    const leftSiblingIndex = Math.max(currentPage - siblingCount, 2);
-    const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages - 1);
+    const leftSiblingIndex = Math.max(page - siblingCount, 2);
+    const rightSiblingIndex = Math.min(page + siblingCount, totalPages - 1);
     const showLeftEllipsis = leftSiblingIndex > 2;
     const showRightEllipsis = rightSiblingIndex < totalPages - 1;
 
@@ -52,14 +55,23 @@ export function PaginationFilter({currentPage, pageSize, totalItems, onPageChang
 
     range.push(totalPages);
     return range;
-  }, [currentPage, totalPages, siblingCount]);
+  }, [page, totalPages, siblingCount]);
 
-  const startItem = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-  const endItem = Math.min(totalItems, currentPage * pageSize);
+  const startItem = total === 0 ? 0 : (page - 1) * limit + 1;
+  const endItem = Math.min(total, page * limit);
 
-  if (totalItems === 0) {
+  if (total === 0) {
     return null;
   }
+
+  const handlePageChange = (page: number) => {
+    const normalizedPage = Math.min(Math.max(1, page), totalPages);
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    // do not persist sortBy when changing pages
+    // newSearchParams.delete("sortBy");
+    newSearchParams.set("page", normalizedPage.toString());
+    router.push(`${pathname}?${newSearchParams.toString()}`);
+  };
 
   return (
     <div className={cn("flex flex-col gap-2 sm:flex-row sm:items-center justify-between py-5", className)}>
@@ -68,8 +80,8 @@ export function PaginationFilter({currentPage, pageSize, totalItems, onPageChang
           <PaginationItem>
             <PaginationPrevious
               size={10}
-              onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
-              className={cn("rounded-none border px-3 py-1 text-sm font-semibold", currentPage <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer")}
+              onClick={() => page > 1 && handlePageChange(page - 1)}
+              className={cn("rounded-none border px-3 py-1 text-sm font-semibold", page <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer")}
             />
           </PaginationItem>
 
@@ -82,9 +94,9 @@ export function PaginationFilter({currentPage, pageSize, totalItems, onPageChang
               <PaginationItem key={page}>
                 <PaginationLink
                   size={10}
-                  onClick={() => onPageChange(page as number)}
-                  isActive={currentPage === page}
-                  className={cn("rounded-none border px-3 py-1 text-sm font-semibold", currentPage === page ? "bg-chart-1 text-white" : "bg-white text-black")}
+                  onClick={() => handlePageChange(page as number)}
+                  isActive={page === page}
+                  className={cn("rounded-none border px-3 py-1 text-sm font-semibold", page === page ? "bg-chart-1 text-white" : "bg-white text-black")}
                 >
                   {page}
                 </PaginationLink>
@@ -95,18 +107,15 @@ export function PaginationFilter({currentPage, pageSize, totalItems, onPageChang
           <PaginationItem>
             <PaginationNext
               size={10}
-              onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
-              className={cn(
-                "rounded-none border px-3 py-1 text-sm font-semibold",
-                currentPage >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer",
-              )}
+              onClick={() => page < totalPages && handlePageChange(page + 1)}
+              className={cn("rounded-none border px-3 py-1 text-sm font-semibold", page >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer")}
             />
           </PaginationItem>
         </PaginationContent>
       </UIPagination>
 
       <div className="text-sm text-muted-foreground">
-        Showing {startItem} to {endItem} of {totalItems} ({totalPages} Pages)
+        Showing {startItem} to {endItem} of {total} ({totalPages} Pages)
       </div>
     </div>
   );

@@ -8,13 +8,13 @@ export const productPermissionCheckListener = (channel: amqp.Channel) => {
     if (!msg) return;
 
     try {
-      const {categoryId, userId, correlationId} = JSON.parse(msg.content.toString());
+      const {permissionId, userId, correlationId} = JSON.parse(msg.content.toString());
 
       const productManager = await prisma.productManager.findUniqueOrThrow({where: {userId}, select: {id: true}});
 
       const permission = await prisma.productPermission.findUniqueOrThrow({
-        where: {productManagerId_categoryId: {categoryId, productManagerId: productManager.id}},
-        select: {id: true},
+        where: {id: permissionId, productManagerId: productManager.id},
+        select: {id: true, productManagerId: true},
       });
 
       channel.sendToQueue("product_per_response", Buffer.from(JSON.stringify({permissionId: permission.id, success: !!permission})), {correlationId});

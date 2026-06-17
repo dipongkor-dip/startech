@@ -9,7 +9,7 @@ export const seedCategories = async () => {
     // await category.insertMany(categoriesData, { ordered: false });
     // await category.insertMany(desktopData, {ordered: false});
     // await category.insertMany(demoPhone, {ordered: false});
-    // await category.insertMany(monitors, {ordered: false});
+    await category.insertMany(monitors, {ordered: false});
 
     console.log("✅ Categories seeded successfully");
   } catch (error: any) {
