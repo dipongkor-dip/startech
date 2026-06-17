@@ -56,13 +56,14 @@ const findCollectionsWithCategory = async (targetCategoryIds: mongoose.Types.Obj
 
 // মেইন সার্ভিস ফাংশન
 export const getProductsService = async (filters: any) => {
-  const {slug, page = 1, limit = 16, sortBy = "default", price, availability, skipCollections = []} = filters;
+  const {slug, page = 1, limit = 16, sortBy = "default", price, availability} = filters;
   // console.log("availability", {availability}) // "in,up"
-
+  console.log(filters);
   const currentPage = Math.max(1, Number(page));
   const currentLimit = Math.max(1, Number(limit));
 
   const categoryData = await getCategoryAndSubCategoryIds(slug);
+  const skipCollections: string[] = [];
   // console.log("categoryData", categoryData.subCategoryIds)
   const activeCollections = await findCollectionsWithCategory(categoryData.allIds, skipCollections);
 

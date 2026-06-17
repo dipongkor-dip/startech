@@ -9,7 +9,7 @@ function formatPrice(n: number) {
   return `৳ ${n.toLocaleString("en-BD")}`;
 }
 
-export function CategoryProductCard({product, className}: {product: MockProduct; className?: string}) {
+export function CategoryProductCard({product, className}: {product: any; className?: string}) {
   return (
     <Card size="sm" className={cn("relative overflow-visible transition-shadow shadow-md border-none ring-0 rounded", className)}>
       {product.discountLabel ? (
@@ -24,14 +24,14 @@ export function CategoryProductCard({product, className}: {product: MockProduct;
 
       <CardContent className="px-3 pt-2 pb-1">
         <Link href="#" className="line-clamp-2 font-heading text-sm font-semibold leading-snug text-foreground hover:text-chart-1 hover:underline">
-          {product.title}
+          {product?.title}
         </Link>
         <ul className="mt-2 list-inside list-disc space-y-0.5 text-xs text-muted-foreground">
-          {product.specs.map((s) => (
+          {/* {product.specs.map((s) => (
             <li key={s} className="marker:text-muted-foreground/70">
               {s}
             </li>
-          ))}
+          ))} */}
         </ul>
       </CardContent>
 

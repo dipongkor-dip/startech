@@ -7,7 +7,8 @@ import {getProductsService} from "./get.service";
 export const getProducts = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   try {
     const products = await getProductsService(req.query);
-    return sendResponse(res, {
+    console.log(products);
+    sendResponse(res, {
       status: status.OK,
       success: true,
       message: "Categories retrieved successfully",

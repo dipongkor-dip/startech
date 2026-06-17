@@ -3,7 +3,6 @@
 import * as React from "react";
 
 import type {Category, Product} from "@/store/slices/product/interface";
-import {getMockProducts} from "@/lib/category-listing";
 import {CategoryProductCard} from "@/components/category/CategoryProductCard";
 import {ProductsFilters} from "@/components/ProductsFilters";
 import {PaginationFilter} from "@/components/pagination/PaginationFilter";
@@ -39,10 +38,29 @@ function buildParentChain(categories: Category[], slug: string | null): Category
 export default function CategoryListingView({slug, query}: {slug: string | null; query: any}) {
   const dispatch = useAppDispatch();
   const categories = useAppSelector((state) => state.products.categories);
+  const {products, loading, error} = useAppSelector((state) => state.products);
   const categoriesLoading = useAppSelector((state) => state.products.categoriesLoading);
   const categoriesError = useAppSelector((state) => state.products.categoriesError);
   const [matchedCategory, setMatchedCategory] = React.useState<Category | null>(null);
   const [parentChain, setParentChain] = React.useState<Category[]>([]);
+
+  const normalizedQuery = React.useMemo(() => {
+    const result: Record<string, string> = {};
+    if (slug) result.slug = slug;
+
+    if (query && typeof query === "object") {
+      Object.entries(query).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === "") return;
+        if (Array.isArray(value)) {
+          result[key] = value.join(",");
+        } else {
+          result[key] = String(value);
+        }
+      });
+    }
+
+    return result;
+  }, [query, slug]);
 
   React.useEffect(() => {
     if (!categories.length && !categoriesLoading && !categoriesError) {
@@ -59,12 +77,14 @@ export default function CategoryListingView({slug, query}: {slug: string | null;
   }, [slug, categories]);
 
   React.useEffect(() => {
-    console.log("params", query);
-  }, [query]);
+    console.log("query", query)
+    dispatch(fetchProducts(normalizedQuery));
+  }, [normalizedQuery, dispatch, query]);
+
+  console.log(products);
 
   const childCategories = matchedCategory?.child ?? [];
 
-  const products = getMockProducts();
 
   const metaData = {
     limit: 16,
@@ -86,9 +106,15 @@ export default function CategoryListingView({slug, query}: {slug: string | null;
 
           {/** Products */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {products.length === 0 && <div className="col-span-full py-16 text-center text-sm text-muted-foreground">Sorry! No Product Found</div>}
+            {loading && <div className="col-span-full py-16 text-center text-sm text-muted-foreground">Loading products...</div>}
+            {!loading && error && <div className="col-span-full py-16 text-center text-sm text-destructive">{error}</div>}
+            {!loading && !error && products.length === 0 && (
+              <div className="col-span-full py-16 text-center text-sm text-muted-foreground">Sorry! No Product Found</div>
+            )}
 
-            {/* {products.length > 0 && products.map((p) => <CategoryProductCard key={p.id} product={products} />)} */}
+            {!loading && !error && products.length > 0 && products.map((product) => (
+              <CategoryProductCard key={product.id} product={product} />
+            ))}
           </div>
 
           {/** Pagination */}
