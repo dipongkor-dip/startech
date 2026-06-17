@@ -4,7 +4,7 @@ import Link from "next/link";
 import {useAppSelector} from "@/store/hooks";
 import {ThemeChanger} from "@/components/theme/ThemeChanger";
 import {useState} from "react";
-import {Gift, Cpu} from "lucide-react";
+import {Gift, User, Hourglass} from "lucide-react";
 
 export default function Navbar() {
   const {isAuthenticated, initialized} = useAppSelector((s) => s.auth);
@@ -26,32 +26,52 @@ export default function Navbar() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search products..."
-              className="w-full py-2 px-3 rounded-md bg-background text-foreground outline-none"
+              className="w-full py-2 px-3 rounded-md text-foreground outline-none"
             />
           </div>
 
-          <nav className="hidden items-center gap-5 xl:flex">
+          <nav className="hidden items-center gap-5 xl:flex text-white">
             <ThemeChanger />
 
-            <Link href="/offers" className="flex items-center gap-1 text-sm font-medium text-white cursor-pointer">
-              <Gift className="md:h-auto md:w-auto h-4 w-4 text-chart-1" />
-              <span>Offers</span>
-            </Link>
-
-            <Link href="/pc-builder" className="flex items-center gap-1 text-sm font-medium text-white cursor-pointer">
-              <Cpu className="md:h-auto md:w-auto h-4 w-4 text-chart-1" />
-              <span>PC Builder</span>
-            </Link>
-
-            {isAuthenticated && !initialized ? (
-              <Link href="/dashboard" className="text-sm font-medium text-white cursor-pointer">
-                Account
+            <span className="flex items-center gap-3">
+              <Gift size={20} className="text-chart-1" />
+              <Link href="/offers">
+                <span className="flex flex-col gap-0 cursor-pointer">
+                  <strong className="text-sm">Offers</strong>
+                  <p className="text-xs">Latest Offers</p>
+                </span>
               </Link>
-            ) : (
-              <Link href="/login" className="px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700">
-                Login
+            </span>
+
+            <span className="flex items-center gap-3">
+              <Hourglass size={20} className="text-chart-1" />
+              <Link href="/specials">
+                <span className="flex flex-col gap-0 cursor-pointer">
+                  <strong className="text-sm">Happy Hour</strong>
+                  <p className="text-xs">Special Deals</p>
+                </span>
               </Link>
-            )}
+            </span>
+
+            <span className="flex items-center gap-3">
+              <User size={20} className="text-chart-1" />
+              <span className="flex flex-col gap-0">
+                <strong className="text-sm">Account</strong>
+                {isAuthenticated && !initialized ? (
+                  <Link href="/dashboard" className="text-xs font-medium cursor-pointer underline">
+                    Dashboard
+                  </Link>
+                ) : (
+                  <Link href="/login" className="text-xs hover:underline hover:text-chart-1">
+                    Login
+                  </Link>
+                )}
+              </span>
+            </span>
+
+            <Link href="/pc-builder" type="button" className="flex items-center gap-1 text-sm font-medium px-3 py-2 bg-chart-2 rounded-sm cursor-pointer">
+              <strong>PC Builder</strong>
+            </Link>
           </nav>
 
           <div className="xl:hidden">

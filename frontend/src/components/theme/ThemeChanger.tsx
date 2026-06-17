@@ -27,9 +27,9 @@ export function ThemeChanger() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="rounded-md border-none p-2 bg-accent hover:text-accent-foreground">
-        {show === "light" && <Sun />}
-        {show === "dark" && <Moon />}
+      <DropdownMenuTrigger className="text-white">
+        {show === "light" && <Sun size={20} />}
+        {show === "dark" && <Moon size={20} />}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="">
         <DropdownMenuItem onClick={() => setTheme("light")}>
