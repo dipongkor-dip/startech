@@ -1,4 +1,4 @@
-import CategoryListingView from "@/components/CategoryListingView";
+import RootProductsPages from "@/components/slug-pages/RootProductsPages";
 
 type Props = {
   params: Promise<{slug?: string[]}>;
@@ -10,5 +10,5 @@ export default async function CategoryPage({params, searchParams}: Props) {
   const categorySlug = slug?.slice(-1)[0] ?? null;
   const query = searchParams ? await searchParams : {};
 
-  return <CategoryListingView slug={categorySlug} query={query} />;
+  return <RootProductsPages slug={categorySlug} query={query} />;
 }

@@ -123,7 +123,7 @@ export function ProductsFilters() {
   }, []);
 
   return (
-    <aside className={cn("w-full shrink-0 lg:w-64")}>
+    <aside className={cn("w-full shrink-0 lg:w-64 mb-10")}>
       <Accordion multiple defaultValue={defaultOpenFilters} className="flex flex-col gap-2">
         {/** Price range filter */}
 

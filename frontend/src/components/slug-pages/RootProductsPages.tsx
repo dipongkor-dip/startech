@@ -1,10 +1,9 @@
 "use client";
 
 import * as React from "react";
-
-import type {Category, Product} from "@/store/slices/product/interface";
-import {CategoryProductCard} from "@/components/category/CategoryProductCard";
-import {ProductsFilters} from "@/components/ProductsFilters";
+import type {Category} from "@/store/slices/product/interface";
+import Product from "./Product";
+import {ProductsFilters} from "../pagination/ProductsFilters";
 import {PaginationFilter} from "@/components/pagination/PaginationFilter";
 import {useAppDispatch, useAppSelector} from "@/store/hooks";
 import {fetchCategories, fetchProducts} from "@/store/slices/product/api";
@@ -35,7 +34,7 @@ function buildParentChain(categories: Category[], slug: string | null): Category
   return [];
 }
 
-export default function CategoryListingView({slug, query}: {slug: string | null; query: any}) {
+export default function RootProductsPages({slug, query}: {slug: string | null; query: any}) {
   const dispatch = useAppDispatch();
   const categories = useAppSelector((state) => state.products.categories);
   const {products, loading, error} = useAppSelector((state) => state.products);
@@ -77,7 +76,7 @@ export default function CategoryListingView({slug, query}: {slug: string | null;
   }, [slug, categories]);
 
   React.useEffect(() => {
-    console.log("query", query)
+    console.log("query", query);
     dispatch(fetchProducts(normalizedQuery));
   }, [normalizedQuery, dispatch, query]);
 
@@ -85,12 +84,7 @@ export default function CategoryListingView({slug, query}: {slug: string | null;
 
   const childCategories = matchedCategory?.child ?? [];
 
-
-  const metaData = {
-    limit: 16,
-    page: 1,
-    total: 20,
-  };
+  const metaData = {limit: 16, page: 1, total: 20};
 
   return (
     <>
@@ -105,16 +99,19 @@ export default function CategoryListingView({slug, query}: {slug: string | null;
           <ProductsHeader categoryName={matchedCategory?.name || "Products"}></ProductsHeader>
 
           {/** Products */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 min-h-[calc(100vh-26rem)]">
             {loading && <div className="col-span-full py-16 text-center text-sm text-muted-foreground">Loading products...</div>}
+
             {!loading && error && <div className="col-span-full py-16 text-center text-sm text-destructive">{error}</div>}
+
             {!loading && !error && products.length === 0 && (
-              <div className="col-span-full py-16 text-center text-sm text-muted-foreground">Sorry! No Product Found</div>
+              <div className="col-span-full py-16 text-center text-sm text-muted-foreground space-y-4">
+                <strong>Sorry! No Product Found</strong>
+                <p>Please try searching for something else</p>
+              </div>
             )}
 
-            {!loading && !error && products.length > 0 && products.map((product) => (
-              <CategoryProductCard key={product.id} product={product} />
-            ))}
+            {!loading && !error && products.length > 0 && products.map((product) => <Product key={product.id} product={product} />)}
           </div>
 
           {/** Pagination */}
