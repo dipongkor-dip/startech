@@ -6,19 +6,16 @@ import {useAppSelector} from "@/store/hooks";
 
 export default function DashboardLayout({children}: {children: React.ReactNode}) {
   const router = useRouter();
-  const {isAuthenticated, initialized, loading} = useAppSelector((s) => s.auth);
+  const {user, loading} = useAppSelector((s) => s.auth);
+
   useEffect(() => {
-    if (!loading && !initialized && !isAuthenticated) {
-      router.replace("/login");
+    if (!loading && (!user?.email && !user?.phone)) {
+      router.replace("/auth");
     }
-  }, [initialized, isAuthenticated, router, loading]);
+  }, [user, loading, router]);
 
   if (loading) {
     return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading…</div>;
-  }
-
-  if (!isAuthenticated) {
-    return null;
   }
 
   return <>{children}</>;

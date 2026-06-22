@@ -22,13 +22,19 @@ const register = async (payload: registerDTO) => {
 
   const hashedPassword = await bcrypt.hash(payload.password, 12);
 
-  await prisma.$transaction(async (tx) => {
+  const profile = await prisma.$transaction(async (tx) => {
     const user = await tx.user.create({
       data: {email: payload.email, phone: payload.phone, password: hashedPassword},
     });
 
     await tx.customer.create({data: {userId: user.id, name: userName}});
+
+    return user;
   });
+
+  const accessToken = signAccessToken(profile.id, profile.role);
+  const refreshToken = signRefreshToken(profile.id, profile.role);
+  return {accessToken, refreshToken};
 };
 
 const sendOtpUserCheck = async (payload: sendOtpDTO) => {
@@ -77,35 +83,50 @@ const login = async (payload: loginDTO) => {
     throw new ServerError(status.FORBIDDEN, "Invalid credentials");
   }
 
-  if (!user || !user.password) throw new ServerError(status.NOT_FOUND, !user ? "Invalid credentials" : "User does not have a password set");
+  if (!user || !user.password) throw new ServerError(status.NOT_FOUND, !user ? "None of your accounts were found." : "User does not have a password set");
 
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) throw new ServerError(status.UNAUTHORIZED, "Invalid credentials");
 
   const accessToken = signAccessToken(user.id, user.role);
   const refreshToken = signRefreshToken(user.id, user.role);
-  return {accessToken, refreshToken, isValidated: user.isValidated, needPasswordReset: user.needPasswordReset};
+  return {accessToken, refreshToken};
 };
 
 // GET /auth/me
 const getMe = async (userId: string) => {
-  const user = await prisma.user.findUnique({where: {id: userId, isValidated: true, needPasswordReset: false}});
+  const user = await prisma.user.findUnique({
+    where: {id: userId, isValidated: true, needPasswordReset: false},
+    select: {id: true, email: true, phone: true, role: true, status: true, isValidated: true, needPasswordReset: true},
+  });
 
   if (!user) throw new ServerError(status.FORBIDDEN, "User not found");
 
   let profile;
 
   if (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) {
-    profile = await prisma.admin.findUnique({where: {userId}});
+    profile = await prisma.admin.findUnique({
+      where: {userId},
+      select: {name: true, avatar: true, division: true, city: true, upazila: true, address: true, isActive: true, createdAt: true},
+    });
   } else if (user.role === UserRole.CUSTOMER) {
-    profile = await prisma.customer.findUnique({where: {userId}});
+    profile = await prisma.customer.findUnique({
+      where: {userId},
+      select: {name: true, avatar: true, division: true, city: true, upazila: true, address: true, isActive: true, createdAt: true},
+    });
   } else if (user.role === UserRole.CUSTOMER_SUPPORT_MANAGER) {
-    profile = await prisma.customerSupportManager.findUnique({where: {userId}});
+    profile = await prisma.customerSupportManager.findUnique({
+      where: {userId},
+      select: {name: true, avatar: true, division: true, city: true, upazila: true, address: true, isActive: true, createdAt: true},
+    });
   } else if (user.role === UserRole.DELIVERY_BOY) {
-    profile = await prisma.deliveryBoy.findUnique({where: {userId}});
+    profile = await prisma.deliveryBoy.findUnique({
+      where: {userId},
+      select: {name: true, avatar: true, division: true, city: true, upazila: true, address: true, isActive: true, createdAt: true},
+    });
   }
 
-  return {profile, role: user.role};
+  return {profile, ...user};
 };
 
 const changePassword = async (userId: string, payload: changePasswordDTO) => {
@@ -133,7 +154,7 @@ const addEmployee = async (payload: addEmployeeDTO, userRole: string) => {
 
   const user = await prisma.user.findFirst({
     where: {
-      AND: [{OR: [email ? {email} : {}, phone ? {phone} : {}]}, {OR: [{status: Status.active}, {status: Status.inactive}]}],
+      AND: [{OR: [email ? {email} : {}, phone ? {phone} : {}]}, {OR: [{status: Status.ACTIVE}, {status: Status.INACTIVE}]}],
     },
     select: {
       id: true,
@@ -173,4 +194,8 @@ const addEmployee = async (payload: addEmployeeDTO, userRole: string) => {
   });
 };
 
-export const authService = {register, verifyOtp, sendOtpUserCheck, login, getMe, changePassword, addEmployee};
+const googleAuth = async () => {};
+
+const facebookAuth = async () => {};
+
+export const authService = {register, verifyOtp, sendOtpUserCheck, login, getMe, changePassword, addEmployee, googleAuth, facebookAuth};

@@ -1,6 +1,7 @@
 "use server";
 
 import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
 
 export const verifyToken = async (token: string) => {
   try {
@@ -11,4 +12,14 @@ export const verifyToken = async (token: string) => {
   } catch (error: any) {
     return {success: false, message: error?.message || "Invalid token"};
   }
+};
+
+export const getCookie = async (key: string) => {
+  const cookieStore = await cookies();
+  return cookieStore.get(key)?.value || null;
+};
+
+export const deleteCookie = async (key: string) => {
+  const cookieStore = await cookies();
+  cookieStore.delete(key);
 };

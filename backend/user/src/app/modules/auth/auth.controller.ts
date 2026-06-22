@@ -10,26 +10,26 @@ import {authService} from "./auth.service";
 import {addEmployeeDTO, changePasswordDTO, loginDTO, sendOtpDTO, verifyOtpDTO} from "./auth.validation";
 
 const login = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const {email, phone} = req.body;
-
   try {
-    const {accessToken, refreshToken, isValidated, needPasswordReset} = await authService.login(req.body as loginDTO);
+    const {accessToken, refreshToken} = await authService.login(req.body as loginDTO);
 
     res.cookie("accessToken", accessToken, {httpOnly: true, secure: true, sameSite: "none", maxAge: 7 * 24 * 60 * 60 * 1000}); // 7 days
     res.cookie("refreshToken", refreshToken, {httpOnly: true, secure: true, sameSite: "none", maxAge: 30 * 24 * 60 * 60 * 1000}); // 30 days
 
-    res.status(status.OK).json({success: true, message: "Login successful", isValidated, needPasswordReset, loginCredential: email ? email : phone});
+    res.status(status.OK).json({success: true, message: "Login successful"});
   } catch (error) {
     next(error);
   }
 });
 
 const register = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const {email, phone} = req.body;
   try {
-    await authService.register(req.body);
+    const {accessToken, refreshToken} = await authService.register(req.body);
 
-    res.status(status.CREATED).json({success: true, message: "Registration successful. Please verify your OTP.", loginCredential: email ? email : phone});
+    res.cookie("accessToken", accessToken, {httpOnly: true, secure: true, sameSite: "none", maxAge: 7 * 24 * 60 * 60 * 1000}); // 7 days
+    res.cookie("refreshToken", refreshToken, {httpOnly: true, secure: true, sameSite: "none", maxAge: 30 * 24 * 60 * 60 * 1000}); // 30 days
+
+    res.status(status.CREATED).json({success: true, message: "Registration successful. Please verify your OTP."});
   } catch (error: any) {
     next(error);
   }
@@ -117,9 +117,9 @@ const me = catchAsync(async (req: AuthenticatedRequest, res: Response, next: Nex
   const {userId} = req.token as JwtPayload;
 
   try {
-    const user = await authService.getMe(userId);
+    const data = await authService.getMe(userId);
 
-    res.status(status.OK).json({success: true, message: "User retrieved successfully", user});
+    res.status(status.OK).json({success: true, message: "User retrieved successfully", data});
   } catch (error) {
     next(error);
   }
@@ -142,6 +142,26 @@ const addEmployee = catchAsync(async (req: AuthenticatedRequest, res: Response, 
     const employee = await authService.addEmployee(req.body as addEmployeeDTO, role as string);
 
     res.status(status.CREATED).json({success: true, message: "Employee added successfully", employee});
+  } catch (error) {
+    next(error);
+  }
+});
+
+const googleAuth = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const auth = await authService.googleAuth();
+
+    res.status(status.CREATED).json({success: true, message: "Login successfully", auth});
+  } catch (error) {
+    next(error);
+  }
+});
+
+const facebookAuth = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const auth = await authService.facebookAuth();
+
+    res.status(status.CREATED).json({success: true, message: "Login successfully", auth});
   } catch (error) {
     next(error);
   }

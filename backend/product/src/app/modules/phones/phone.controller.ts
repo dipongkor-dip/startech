@@ -36,6 +36,7 @@ const getPhoneById = async (req: Request, res: Response) => {
 
 const createPhone = catchAsync(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
+    console.log(req.body)
     const phone = await phoneService.createPhone(req.body);
     return sendResponse(res, {
       status: StatusCodes.CREATED,

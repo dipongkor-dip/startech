@@ -6,6 +6,7 @@ import {ThemeProviderWrapper} from "@/providers/ThemeProviderWrapper";
 import {StoreProvider} from "@/providers/StoreProvider";
 import {TooltipProvider} from "@/components/ui/tooltip";
 import {Toaster} from "@/components/ui/sonner";
+import {AuthProvider} from "@/providers/AuthProvider";
 
 const inter = Inter({subsets: ["latin"], variable: "--font-sans"});
 const poppins = Poppins({subsets: ["latin"], weight: ["300", "400", "500", "600"], variable: "--font-poppins"});
@@ -21,8 +22,10 @@ export default function RootLayout({children}: Readonly<{children: React.ReactNo
       <body className="flex min-h-screen flex-col">
         <ThemeProviderWrapper>
           <StoreProvider>
-            <TooltipProvider delay={0}>{children}</TooltipProvider>
-            <Toaster richColors position="top-center" />
+            <AuthProvider>
+              <TooltipProvider delay={0}>{children}</TooltipProvider>
+              <Toaster richColors position="top-center" />
+            </AuthProvider>
           </StoreProvider>
         </ThemeProviderWrapper>
       </body>

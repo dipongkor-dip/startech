@@ -1,23 +1,15 @@
+import Link from "next/link";
 import {CopyPlus, PackageIcon, ShoppingCart} from "lucide-react";
 import {Card, CardContent, CardFooter} from "@/components/ui/card";
 import {Badge} from "@/components/ui/badge";
 import {cn} from "@/lib/utils";
 import {Button} from "@base-ui/react";
-import {useRouter} from "next/navigation";
 
 function formatPrice(n: number) {
   return `${n.toLocaleString("en-BD")}৳`;
 }
 
-export default function Product({product, className, slug}: {product: any; className?: string; slug: string}) {
-  const router = useRouter();
-
-  const navigateProduct = (category: string, productTitle: string) => {
-    const safeCategory = category.toLowerCase().replace(/\s+/g, "-");
-    const safeTitle = productTitle.toLowerCase().replace(/\s+/g, "-");
-    router.push(`/products/${safeCategory}/${safeTitle}`);
-  };
-
+export default function Product({product, className}: {product: any; className?: string}) {
   return (
     <Card size="sm" className={cn("relative overflow-visible transition-shadow border-none ring-0 rounded shadow-sm hover:shadow-md", className)}>
       {product.discountPrice ? (
@@ -31,12 +23,9 @@ export default function Product({product, className, slug}: {product: any; class
       </div>
 
       <CardContent className="border-b-[0.5px] mx-2 py-3">
-        <Button
-          onClick={() => navigateProduct(slug, product.model)}
-          className="line-clamp-2 font-heading text-sm font-semibold leading-snug text-foreground hover:text-chart-1 hover:underline"
-        >
+        <Link href="#" className="line-clamp-2 font-heading text-sm font-semibold leading-snug text-foreground hover:text-chart-1 hover:underline">
           {product?.model}
-        </Button>
+        </Link>
         <ul className="mt-4 list-inside list-disc space-y-2 text-xs font-medium text-muted-foreground">
           <li className="marker:text-muted-foreground/70">Display: {product.display}</li>
           <li className="marker:text-muted-foreground/70">Processor: {product.processor}</li>
@@ -62,10 +51,7 @@ export default function Product({product, className, slug}: {product: any; class
           <span className="text-sm font-semibold line-through text-muted-foreground">{formatPrice(product.price)}</span>
         </div>
 
-        <Button
-          onClick={() => navigateProduct(slug, product.model)}
-          className="w-full bg-background text-blue-500 font-medium py-1.5 flex justify-center items-center gap-2 hover:bg-blue-600 hover:text-white"
-        >
+        <Button className="w-full bg-background text-blue-500 font-medium py-1.5 flex justify-center items-center gap-2 hover:bg-blue-600 hover:text-white">
           <ShoppingCart size={16} />
           <strong>Buy Now</strong>
         </Button>

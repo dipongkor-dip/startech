@@ -78,13 +78,30 @@ const specificationSchema = new Schema(
 const PhoneSchema = new Schema(
   {
     brand: {type: String, required: true, trim: true},
-    categoryId: {type: Schema.Types.ObjectId, ref: "Category", required: true, index: true},
+    categoryId: {type: mongoose.Schema.Types.ObjectId, ref: "Category", required: true, index: true},
     permissionId: {type: String, required: true},
-    modelName: {type: String, required: true, trim: true, unique: true},
+
+    // 🎯 model ফিল্ডটিকে এখানে ইউনিক এবং প্রাইমারি ইনডেক্স হিসেবে সেট করা হলো
+    model: {
+      type: String,
+      required: true,
+      trim: true,
+      unique: true, // ২টা প্রোডাক্টের মডেল কখনো এক হবে না
+      index: true, // ডাটাবেজ সার্চ সুপার ফাস্ট করার জন্য ইনডেক্সিং
+    },
+
     productCode: {type: String, default: "", unique: true},
     price: {type: Number, required: true, min: 0},
     discountPrice: {type: Number, min: 0},
-    status: {type: String, enum: ["In Stock", "Out of Stock", "Coming Soon"], default: "In Stock"},
+
+    // সরাসরি availability ফিল্ড অপশন হিসেবে থাকছে
+    availability: {
+      type: String,
+      enum: ["In Stock", "Coming Soon", "Pre Order", "Out of Stock"],
+      default: "In Stock",
+      index: true,
+    },
+
     options: {
       type: [{ram: String, storage: String, color: String}],
       default: [],
@@ -97,7 +114,7 @@ const PhoneSchema = new Schema(
     },
     storage: {type: String, default: ""},
     features: [{type: String}],
-    // images: [{url: {type: String, required: true}}],
+    images: [{type: String, default: []}],
     specification: specificationSchema,
     description: {
       type: [
@@ -118,11 +135,13 @@ const PhoneSchema = new Schema(
     timestamps: true,
     toJSON: {
       transform: (_doc, ret: Record<string, unknown>) => {
-        const {modelName, ...rest} = ret;
-        return modelName !== undefined ? {...rest, model: modelName} : ret;
+        delete ret.__v;
+        return ret;
       },
     },
   },
 );
+
+PhoneSchema.index({categoryId: 1, price: 1, availability: 1});
 
 export const Phone = mongoose.model<IPhone & mongoose.Document>("Phone", PhoneSchema);

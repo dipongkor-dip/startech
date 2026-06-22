@@ -5,12 +5,6 @@ import ServerError from "../../handler/ServerError";
 import status from "http-status";
 import {ObjectId} from "mongoose";
 
-// Map API field 'model' to schema field 'modelName'
-const toSchemaData = (data: Record<string, unknown>) => {
-  const {model, ...rest} = data;
-  return model !== undefined ? {...rest, modelName: model} : rest;
-};
-
 const getPhones = async () => {
   const phones = await Phone.find({productStatus: ProductStatus.ACTIVE}).sort({createdAt: -1}).lean();
   return phones.map((p: Record<string, unknown>) => ({
@@ -28,7 +22,7 @@ const getPhoneById = async (id: string) => {
 };
 
 const createPhone = async (data: Partial<IPhone>) => {
-  const phone = await Phone.create(toSchemaData(data as Record<string, unknown>));
+  const phone = await Phone.create(data);
   const p = phone.toObject() as unknown as Record<string, unknown>;
   return {...p, model: p.modelName ?? p.model, modelName: undefined};
 };
@@ -47,7 +41,7 @@ const updatePhone = async (id: string, data: Partial<IPhone>, userId: string) =>
     throw new ServerError(status.UNAUTHORIZED, response.error || "Unauthorized User");
   }
 
-  const updatePhone = await Phone.findByIdAndUpdate(id, toSchemaData(data as Record<string, unknown>), {
+  const updatePhone = await Phone.findByIdAndUpdate(id, data as Record<string, unknown>, {
     new: true,
   }).lean();
   if (!updatePhone) return null;

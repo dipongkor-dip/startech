@@ -14,15 +14,15 @@ enum ProviderType {
 }
 
 enum Status {
-  active
-  inactive
-  banned
+  ACTIVE
+  INACTIVE
+  BANNED
 }
 
 model AuthProvider {
   id       String       @id @default(cuid())
   userId   String
-  provider ProviderType @default(local)
+  provider ProviderType @default(local) // local | google | facebook
 
   providerId String   @default(cuid()) // Unique ID from the provider (e.g., Google sub, Facebook id  )
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -38,9 +38,9 @@ model User {
   email             String?        @unique
   password          String?
   credentials       Json? // For storing hashed password and salt for local auth
-  authProvider      AuthProvider[]
+  authProvider      AuthProvider[] // max length 3
   isValidated       Boolean        @default(false)
-  status            Status         @default(active)
+  status            Status         @default(ACTIVE)
   role              UserRole       @default(CUSTOMER)
   needPasswordReset Boolean        @default(false)
   createdAt         DateTime       @default(now())

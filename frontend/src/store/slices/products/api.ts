@@ -1,0 +1,174 @@
+import {createAsyncThunk} from "@reduxjs/toolkit";
+import {Product} from "./interface";
+
+export interface CreateProductData {
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  image?: string;
+  stock: number;
+  status: "active" | "inactive" | "out_of_stock";
+}
+
+export interface UpdateProductData {
+  id: string;
+  product: Partial<Product>;
+}
+
+// Helper function to get products base URL
+const baseUrl = "http://localhost:5004/api/v1";
+
+const getProductsBaseUrl = () => {
+  return `${baseUrl}/products`;
+};
+
+// API functions
+const buildQueryString = (params: any): string => {
+  if (!params) return "";
+  if (typeof params === "string") {
+    return params.startsWith("?") ? params.slice(1) : params;
+  }
+  if (params instanceof URLSearchParams) {
+    return params.toString();
+  }
+
+  const entries = Object.entries(params).flatMap(([key, value]) => {
+    if (value === undefined || value === null || value === "") return [];
+    if (Array.isArray(value)) {
+      return value.map((item) => [key, String(item)] as [string, string]);
+    }
+    return [[key, String(value)]] as [string, string][];
+  });
+
+  return new URLSearchParams(entries).toString();
+};
+
+const fetchProductsAPI = async (params: any): Promise<Product[]> => {
+  const queryString = buildQueryString(params);
+  const url = queryString ? `${getProductsBaseUrl()}?${queryString}` : getProductsBaseUrl();
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || data.error || "Failed to fetch products");
+  }
+
+  return data?.data?.products ?? [];
+};
+
+const fetchProductAPI = async (id: string): Promise<Product> => {
+  const res = await fetch(`${getProductsBaseUrl()}/${id}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || data.error || "Failed to fetch product");
+  }
+
+  return data;
+};
+
+const createProductAPI = async (product: CreateProductData): Promise<Product> => {
+  const res = await fetch(getProductsBaseUrl(), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(product),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || data.error || "Failed to create product");
+  }
+
+  return data;
+};
+
+const updateProductAPI = async ({id, product}: UpdateProductData): Promise<Product> => {
+  const res = await fetch(`${getProductsBaseUrl()}/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(product),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || data.error || "Failed to update product");
+  }
+
+  return data;
+};
+
+const deleteProductAPI = async (id: string): Promise<void> => {
+  const res = await fetch(`${getProductsBaseUrl()}/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to delete product");
+  }
+};
+
+// Redux thunks
+export const fetchProducts = createAsyncThunk<Product[], any, {rejectValue: string}>("products/fetchProducts", async (params: any, {rejectWithValue}) => {
+  try {
+    return await fetchProductsAPI(params);
+  } catch (error) {
+    return rejectWithValue(error instanceof Error ? error.message : "Failed to fetch products");
+  }
+});
+
+export const fetchProduct = createAsyncThunk<Product, string, {rejectValue: string}>("products/fetchProductById", async (id, {rejectWithValue}) => {
+  try {
+    return await fetchProductAPI(id);
+  } catch (error) {
+    return rejectWithValue(error instanceof Error ? error.message : "Failed to fetch product");
+  }
+});
+
+export const createProduct = createAsyncThunk<Product, CreateProductData, {rejectValue: string}>("products/createProduct", async (product, {rejectWithValue}) => {
+  try {
+    return await createProductAPI(product);
+  } catch (error) {
+    return rejectWithValue(error instanceof Error ? error.message : "Failed to create product");
+  }
+});
+
+export const updateProduct = createAsyncThunk<Product, UpdateProductData, {rejectValue: string}>("products/updateProduct", async ({id, product}, {rejectWithValue}) => {
+  try {
+    return await updateProductAPI({id, product});
+  } catch (error) {
+    return rejectWithValue(error instanceof Error ? error.message : "Failed to update product");
+  }
+});
+
+export const deleteProduct = createAsyncThunk<string, string, {rejectValue: string}>("products/deleteProduct", async (id, {rejectWithValue}) => {
+  try {
+    await deleteProductAPI(id);
+    return id;
+  } catch (error) {
+    return rejectWithValue(error instanceof Error ? error.message : "Failed to delete product");
+  }
+});

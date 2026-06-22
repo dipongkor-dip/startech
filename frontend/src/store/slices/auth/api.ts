@@ -1,45 +1,8 @@
 import {createAsyncThunk} from "@reduxjs/toolkit";
-import type {User} from "./interface";
-import {setCookie} from "@/utils/serverCookie";
-
-export interface LoginCredentials {
-  email: string | undefined;
-  phone: string | undefined;
-  password: string;
-}
-export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  isValidated: boolean;
-  needPasswordReset: boolean;
-  loginCredential: string;
-}
-
-export interface RegisterData {
-  email?: string;
-  phone?: string;
-  password: string;
-  name?: string;
-}
-export interface RegisterResponse {
-  message: string;
-  loginCredential: string;
-}
-
-export interface VerifyOtpCredentials {
-  email: string | null;
-  phone: string | null;
-  otp: string;
-}
-
-export interface VerifyOtpResponse {
-  isValidated: boolean;
-  accessToken: string;
-  refreshToken: string;
-}
+import type {LoginCredentials, LoginResponse, RegisterData, RegisterResponse, User, VerifyOtpCredentials, VerifyOtpResponse} from "./interface";
 
 // Helper function to get auth base URL
-const getAuthBaseUrl = () => `http://localhost:3003/api/v1/auth`;
+const getAuthBaseUrl = () => `http://localhost:5003/api/v1/auth`;
 
 // API functions
 const fetchUserAPI = async (): Promise<User> => {
@@ -50,36 +13,8 @@ const fetchUserAPI = async (): Promise<User> => {
     },
   });
 
-  if (res.ok) {
-    const data = await res.json();
-    return data?.user ?? data;
-  }
-
-  if (res.status === 401) {
-    const refreshRes = await fetch(`${getAuthBaseUrl()}/refresh`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (refreshRes.ok) {
-      res = await fetch(`${getAuthBaseUrl()}/me`, {
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        return data?.user ?? data;
-      }
-    }
-    return {isValidate: false, needPasswordReset: false};
-  }
-
-  throw new Error("Failed to fetch user");
+  const data = await res.json();
+  return data?.data ?? data;
 };
 
 const loginAPI = async (credentials: LoginCredentials): Promise<LoginResponse> => {
@@ -95,28 +30,7 @@ const loginAPI = async (credentials: LoginCredentials): Promise<LoginResponse> =
     throw new Error(data.message || data.error || "Login failed");
   }
 
-  setCookie("accessToken", data.accessToken, {
-    secure: true,
-    httpOnly: true,
-    maxAge: parseInt(`${1000 * 60 * 60 * 24}`),
-    path: "/",
-    sameSite: "none",
-  });
-  setCookie("refreshToken", data.refreshToken, {
-    secure: true,
-    httpOnly: true,
-    maxAge: parseInt(`${1000 * 30 * 60 * 60 * 24}`),
-    path: "/",
-    sameSite: "none",
-  });
-
-  return {
-    accessToken: data.accessToken,
-    refreshToken: data.refreshToken,
-    isValidated: data.isValidated,
-    needPasswordReset: data.needPasswordReset,
-    loginCredential: data.loginCredential,
-  };
+  return data.data || data;
 };
 
 const registerAPI = async (userData: RegisterData): Promise<RegisterResponse> => {
@@ -139,7 +53,7 @@ const registerAPI = async (userData: RegisterData): Promise<RegisterResponse> =>
     throw new Error(data.message || data.error || "Registration failed");
   }
 
-  return {message: data.message, loginCredential: data.loginCredential};
+  return {message: data.message};
 };
 
 const logoutAPI = async (): Promise<void> => {

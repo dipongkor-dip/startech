@@ -1,10 +1,9 @@
 import {Router, Request, Response} from "express";
 import {PhoneRoute} from "../modules/phones/phone.route";
-import { ReviewRoute } from "../modules/shared/reviews/review.route";
-import { QueryRoute } from "../modules/shared/query/query.route";
-import { CategoryRoute } from "../modules/shared/categories/categories.route";
-import { getProducts } from "../modules/shared/get-products/get.controller";
-
+import {ReviewRoute} from "../modules/shared/reviews/review.route";
+import {QueryRoute} from "../modules/shared/query/query.route";
+import {CategoryRoute} from "../modules/shared/categories/categories.route";
+import {getProduct, getProducts} from "../modules/shared/get-products/get.controller";
 
 export const routes = Router();
 
@@ -23,3 +22,4 @@ routes.use("/phones/:phoneId/queries", QueryRoute);
 routes.use("/phones", PhoneRoute);
 routes.use("/categories", CategoryRoute);
 routes.use("/products", getProducts);
+routes.use("/product/:categorySlug/:productModel", getProduct);
