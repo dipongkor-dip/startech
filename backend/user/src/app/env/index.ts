@@ -17,7 +17,7 @@ export const env = {
   
   smsGatewayDomain: process.env.SMS_GATEWAY_DOMAIN,
 
-  jwt_secret: process.env.JWT_SECRET,
+  jwt_secret: process.env.JWT_SECRET as string,
   access_token_expires: process.env.ACCESS_TOKEN_EXPIRES,
   refresh_token_expires: process.env.REFRESH_TOKEN_EXPIRES,
 

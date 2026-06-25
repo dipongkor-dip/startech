@@ -1,9 +1,22 @@
-export type UserRole = "ADMIN" | "SUPER_ADMIN" | "PRODUCT_MANAGER" | "DELIVERY_BOY" | "CUSTOMER" | "CUSTOMER_SUPPORT_MANAGER";
+export enum UserRole {
+  ADMIN = "ADMIN",
+  SUPER_ADMIN = "SUPER_ADMIN",
+  PRODUCT_MANAGER = "PRODUCT_MANAGER",
+  DELIVERY_BOY = "DELIVERY_BOY",
+  CUSTOMER = "CUSTOMER",
+  CUSTOMER_SUPPORT_MANAGER = "CUSTOMER_SUPPORT_MANAGER",
+}
+
+export enum UserStatus {
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+}
+
 export interface User {
   email?: string | null;
   phone?: string | null;
   role: UserRole;
-  status: "ACTIVE" | "INACTIVE" | "BANNED";
+  status: UserStatus;
   isValidated: boolean;
   needPasswordReset: boolean;
   profile?: {
@@ -37,6 +50,7 @@ export interface LoginCredentials {
 }
 
 export interface LoginResponse {
+  success: boolean;
   message: string;
 }
 
@@ -48,6 +62,7 @@ export interface RegisterData {
 }
 
 export interface RegisterResponse {
+  success: boolean;
   message: string;
 }
 

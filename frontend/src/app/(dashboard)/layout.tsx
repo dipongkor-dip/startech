@@ -1,22 +1,21 @@
 "use client";
 
-import {useEffect} from "react";
 import {useRouter} from "next/navigation";
 import {useAppSelector} from "@/store/hooks";
+import DashNav from "@/components/dashboard/header/DashNav";
 
 export default function DashboardLayout({children}: {children: React.ReactNode}) {
   const router = useRouter();
   const {user, loading} = useAppSelector((s) => s.auth);
 
-  useEffect(() => {
-    if (!loading && (!user?.email && !user?.phone)) {
-      router.replace("/auth");
-    }
-  }, [user, loading, router]);
-
   if (loading) {
     return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading…</div>;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <DashNav role={user?.role as string}></DashNav>
+      {children}
+    </>
+  );
 }

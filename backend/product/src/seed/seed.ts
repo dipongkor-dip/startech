@@ -1,6 +1,6 @@
+import categoriesData from "./categoriesData.json";
 import desktopData from "./desktopData.json";
 import demoPhone from "./phone.json";
-import categoriesData from "./categoriesData.json";
 import monitors from "./monitor.json";
 import appliances from "./appliances.json";
 import appliances_ac from "./alppliances-ac.json";
@@ -14,7 +14,7 @@ export const seedCategories = async () => {
     // await category.insertMany(monitors, {ordered: false});
     // await category.insertMany(monitors, {ordered: false});
     // await category.insertMany(appliances, {ordered: false});
-    await category.insertMany(appliances_ac, {ordered: false});
+    // await category.insertMany(appliances_ac, {ordered: false});
 
     console.log("✅ Categories seeded successfully");
   } catch (error: any) {

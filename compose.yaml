@@ -73,42 +73,41 @@ services:
       # - ./frontend/.pnpm-store:/app/.pnpm-store
     depends_on:
       - user
-      - chat
     command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm exec next dev --hostname 0.0.0.0 --port 3000"
 
-  delivery:
-    build:
-      context: ./backend/delivery
-      dockerfile: Dockerfile
-    ports:
-      - "5001:5001"
-    env_file:
-      - .env
-    environment:
-      PORT: 5001
-    volumes:
-      - ./backend/delivery:/app
-      - ./backend/delivery/node_modules:/app/node_modules
-      - ./backend/delivery/.pnpm-store:/app/.pnpm-store
-      - ./backend/delivery/logs:/app/logs
-    command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm dev"
+  # delivery:
+  #   build:
+  #     context: ./backend/delivery
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "5001:5001"
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     PORT: 5001
+  #   volumes:
+  #     - ./backend/delivery:/app
+  #     - ./backend/delivery/node_modules:/app/node_modules
+  #     - ./backend/delivery/.pnpm-store:/app/.pnpm-store
+  #     - ./backend/delivery/logs:/app/logs
+  #   command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm dev"
 
-  order:
-    build:
-      context: ./backend/order
-      dockerfile: Dockerfile
-    ports:
-      - "5002:5002"
-    env_file:
-      - .env
-    environment:
-      PORT: 5002
-    volumes:
-      - ./backend/order:/app
-      - ./backend/order/node_modules:/app/node_modules
-      - ./backend/order/.pnpm-store:/app/.pnpm-store
-      - ./backend/order/logs:/app/logs
-    command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm dev"
+  # order:
+  #   build:
+  #     context: ./backend/order
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "5002:5002"
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     PORT: 5002
+  #   volumes:
+  #     - ./backend/order:/app
+  #     - ./backend/order/node_modules:/app/node_modules
+  #     - ./backend/order/.pnpm-store:/app/.pnpm-store
+  #     - ./backend/order/logs:/app/logs
+  #   command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm dev"
 
   user:
     build:
@@ -130,22 +129,22 @@ services:
       - ./backend/user/logs:/app/logs
     command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm db:migrate && pnpm dev"
 
-  chat:
-    build:
-      context: ./backend/chat
-      dockerfile: Dockerfile
-    ports:
-      - "5006:5006"
-    env_file:
-      - .env
-    environment:
-      PORT: 5006
-    volumes:
-      - ./backend/chat:/app
-      - ./backend/chat/node_modules:/app/node_modules
-      - ./backend/chat/.pnpm-store:/app/.pnpm-store
-      - ./backend/chat/logs:/app/logs
-    command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm dev"
+  # chat:
+  #   build:
+  #     context: ./backend/chat
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "5006:5006"
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     PORT: 5006
+  #   volumes:
+  #     - ./backend/chat:/app
+  #     - ./backend/chat/node_modules:/app/node_modules
+  #     - ./backend/chat/.pnpm-store:/app/.pnpm-store
+  #     - ./backend/chat/logs:/app/logs
+  #   command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm dev"
 
   product:
     build:
@@ -166,25 +165,25 @@ services:
       - ./backend/product/logs:/app/logs
     command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm dev"
 
-  payment:
-    build:
-      context: ./backend/payment
-      dockerfile: Dockerfile
-    ports:
-      - "5005:5005"
-    env_file:
-      - .env
-    environment:
-      PORT: 5005
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./backend/payment:/app
-      - ./backend/payment/node_modules:/app/node_modules
-      - ./backend/payment/.pnpm-store:/app/.pnpm-store
-      - ./backend/payment/logs:/app/logs
-    command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm dev"
+  # payment:
+  #   build:
+  #     context: ./backend/payment
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "5005:5005"
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     PORT: 5005
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./backend/payment:/app
+  #     - ./backend/payment/node_modules:/app/node_modules
+  #     - ./backend/payment/.pnpm-store:/app/.pnpm-store
+  #     - ./backend/payment/logs:/app/logs
+  #   command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm dev"
 
 volumes:
   postgres_data:

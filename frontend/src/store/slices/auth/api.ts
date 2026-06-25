@@ -53,7 +53,7 @@ const registerAPI = async (userData: RegisterData): Promise<RegisterResponse> =>
     throw new Error(data.message || data.error || "Registration failed");
   }
 
-  return {message: data.message};
+  return data;
 };
 
 const logoutAPI = async (): Promise<void> => {

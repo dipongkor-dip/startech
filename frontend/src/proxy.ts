@@ -2,7 +2,7 @@ import {NextRequest, NextResponse} from "next/server";
 import {JwtPayload} from "jsonwebtoken";
 import {deleteCookie, getCookie, verifyToken} from "./utils/jwt";
 
-const authRoutes = ["/auth", "/forgot-password", "/otp-verification", "/password-change"];
+const authRoutes = ["/auth", "/forgot-password", "/password-change"];
 const publicRoutes = ["/", "/about", "/contact"];
 const isAuthRoute = (pathname: string) => authRoutes.some((route: string) => route === pathname);
 const isPublicRoute = (pathname: string) => publicRoutes.some((route: string) => route === pathname);
@@ -14,18 +14,22 @@ export async function proxy(request: NextRequest) {
 
   // If user has a valid token and tries to access auth routes, redirect to dashboard
   if (accessToken) {
-    const verifiedToken: JwtPayload | string = await verifyToken(accessToken);
+    try {
+      const verifiedToken: JwtPayload | string = await verifyToken(accessToken);
 
-    if (typeof verifiedToken === "string") {
-      // Token is invalid, clear cookies and redirect to login
-      await deleteCookie("accessToken");
-      await deleteCookie("refreshToken");
+      if (typeof verifiedToken === "string" || verifiedToken.error) {
+        // Token is invalid, clear cookies and redirect to login
+        await deleteCookie("accessToken");
+        await deleteCookie("refreshToken");
+        return NextResponse.redirect(new URL("/auth", request.url));
+      }
+
+      // If authenticated user tries to access auth routes, redirect to dashboard
+      if (isAuthRoute(pathname)) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
+    } catch (error) {
       return NextResponse.redirect(new URL("/auth", request.url));
-    }
-
-    // If authenticated user tries to access auth routes, redirect to dashboard
-    if (isAuthRoute(pathname)) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   } else {
     // If no token and trying to access protected routes, redirect to login

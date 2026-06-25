@@ -1,75 +1,63 @@
 "use client";
 
-import {useEffect, useState} from "react";
-import {useRouter} from "next/navigation";
+import {useState} from "react";
 import Link from "next/link";
 import {useAppDispatch, useAppSelector} from "@/store/hooks";
 import {Button} from "@/components/ui/button";
 import {login, register} from "@/store/slices/auth/api";
 import PassportLogin from "./PassportLogin";
+import {useRouter} from "next/navigation";
+import {UserRole} from "@/store/slices/auth/interface";
+import {toast} from "sonner";
 
 export default function LoginForm() {
   const dispatch = useAppDispatch();
-  const {user, loading, error: authError} = useAppSelector((s) => s.auth);
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<"login" | "register">("login");
   const [loginValue, setLoginValue] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {}, [dispatch, router]);
+  const [error, setError] = useState<string | null>();
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setLoading(true);
+    setError(null);
     const login_email = loginValue.includes("@") ? loginValue : undefined;
     const login_phone = !loginValue.includes("@") ? loginValue : undefined;
 
     try {
       if (mode === "login") {
-        // Login flow using Redux - cookies are handled by API route
-        const result = await dispatch(login({email: login_email, phone: login_phone, password})).unwrap();
-        // Handle login response based on validation status
-        console.log("login", result);
-        if (result.isValidated == false) {
-          // User needs OTP verification
-          const identifier = loginValue.includes("@") ? loginValue : undefined;
-          const phone = !loginValue.includes("@") ? loginValue : undefined;
-          router.push(`/otp-verification?type=${identifier ? "email" : "phone"}&identifier=${identifier || phone}`);
-          return;
-        }
+        await dispatch(login({email: login_email, phone: login_phone, password})).unwrap();
 
-        if (result.needPasswordReset == true) {
-          // User needs password reset
-          router.push("/password-change");
-          return;
-        }
-        // Normal login - Redux handles setting user state and cookies via API
-        router.replace("/dashboard");
+        setLoading(false);
+        toast.success("Login Successful");
+        router.replace("/");
       } else {
-        // Register flow using Redux - cookies are handled by API route
         await dispatch(
           register({
+            name,
             email: loginValue.includes("@") ? loginValue : undefined,
             phone: !loginValue.includes("@") ? loginValue : undefined,
             password,
-            name,
           }),
         ).unwrap();
 
-        // Registration successful - redirect to OTP verification
         const identifier = loginValue.includes("@") ? loginValue : undefined;
         const phone = !loginValue.includes("@") ? loginValue : undefined;
-        router.push(`/otp-verification?type=${identifier ? "email" : "phone"}&identifier=${identifier || phone}`);
+        setLoading(false);
+
+        const payload = {type: login_email ? "email" : "phone", value: loginValue};
+
+        sessionStorage.setItem("otp_auth_payload", JSON.stringify(payload));
+
+        router.push("/otp-verification");
       }
-    } catch (error: any) {
-      setError(error || (mode === "login" ? "Login failed" : "Registration failed"));
+    } catch (err: any) {
+      setLoading(false);
+      console.log(err);
+      setError(err?.message || err || (mode === "login" ? "Login failed" : "Registration failed"));
     }
   };
 
@@ -82,14 +70,18 @@ export default function LoginForm() {
       <div className="flex gap-2 mb-6">
         <Button
           type="button"
-          onClick={() => setMode("login")}
+          onClick={() => {
+            (setMode("login"), setError(null));
+          }}
           className={`flex-1 py-2 rounded-lg font-medium ${mode === "login" ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-600"}`}
         >
           Login
         </Button>
         <Button
           type="button"
-          onClick={() => setMode("register")}
+          onClick={() => {
+            (setMode("register"), setError(null));
+          }}
           className={`flex-1 py-2 rounded-lg font-medium ${mode === "register" ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-600"}`}
         >
           Register
@@ -131,12 +123,8 @@ export default function LoginForm() {
             required
           />
         </div>
-        <Button
-          type="submit"
-          disabled={mounted && loading}
-          className="w-full py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50"
-        >
-          {mounted && loading ? "Please wait..." : mode === "login" ? "Login" : "Register"}
+        <Button type="submit" disabled={loading} className="w-full py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50">
+          {loading ? "Please wait..." : mode === "login" ? "Login" : "Register"}
         </Button>
       </form>
 
