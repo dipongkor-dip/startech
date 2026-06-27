@@ -4,11 +4,12 @@ import {useState} from "react";
 import Link from "next/link";
 import {useAppDispatch, useAppSelector} from "@/store/hooks";
 import {Button} from "@/components/ui/button";
-import {login, register} from "@/store/slices/auth/api";
+import {fetchUser, login, register} from "@/store/slices/auth/api";
 import PassportLogin from "./PassportLogin";
 import {useRouter} from "next/navigation";
 import {UserRole} from "@/store/slices/auth/interface";
 import {toast} from "sonner";
+import {roleBaseDashboards} from "@/proxy";
 
 export default function LoginForm() {
   const dispatch = useAppDispatch();
@@ -19,6 +20,7 @@ export default function LoginForm() {
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>();
   const [loading, setLoading] = useState<boolean>(false);
+  const {user, loading: authLoading} = useAppSelector((state) => state.auth);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,9 +33,19 @@ export default function LoginForm() {
       if (mode === "login") {
         await dispatch(login({email: login_email, phone: login_phone, password})).unwrap();
 
+        await dispatch(fetchUser());
+
+        if (!authLoading && user && !user.isValidated) {
+          const payload = {type: login_email ? "email" : "phone", value: loginValue};
+
+          sessionStorage.setItem("otp_auth_payload", JSON.stringify(payload));
+        }
+
         setLoading(false);
         toast.success("Login Successful");
-        router.replace("/dashboard");
+
+        const path = roleBaseDashboards[user?.role as UserRole];
+        router.replace(`${path}`);
       } else {
         await dispatch(
           register({
@@ -52,7 +64,7 @@ export default function LoginForm() {
 
         sessionStorage.setItem("otp_auth_payload", JSON.stringify(payload));
 
-        router.push("/otp-verification");
+        router.replace("/send-otp");
       }
     } catch (err: any) {
       setLoading(false);

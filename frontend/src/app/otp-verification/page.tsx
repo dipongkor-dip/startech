@@ -5,6 +5,9 @@ import Link from "next/link";
 import {useRouter} from "next/navigation";
 import {useAppDispatch, useAppSelector} from "@/store/hooks";
 import {fetchUser} from "@/store/slices/auth/api";
+import {UserRole} from "@/store/slices/auth/interface";
+import {roleBaseDashboards} from "@/proxy";
+import {toast} from "sonner";
 
 export default function OtpVerificationPage() {
   const router = useRouter();
@@ -14,18 +17,16 @@ export default function OtpVerificationPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
-  const [resendMessage, setResendMessage] = useState("");
   const [isMounted, setIsMounted] = useState(false);
 
   const {user, loading} = useAppSelector((state) => state.auth);
   const [authData, setAuthData] = useState<{type: "email" | "phone"; value: string} | null>(null);
 
-  // ১. সেশন স্টোরেজ থেকে সুরক্ষিতভাবে পেলোড ডাটা রিড এবং মেমোরি গেট-কিপিং
+
   useEffect(() => {
     setIsMounted(true);
     const savedPayload = sessionStorage.getItem("otp_auth_payload");
 
-    // যদি অলরেডি ভ্যালিডেটেড ইউজার হয় অথবা স্টোরেজে ওটিপির ডাটা না থাকে, তবে ফিরিয়ে দিন
     if ((user && user?.isValidated) || !savedPayload) {
       router.replace("/");
       return;
@@ -35,12 +36,12 @@ export default function OtpVerificationPage() {
       try {
         setAuthData(JSON.parse(savedPayload));
       } catch (e) {
-        router.replace("/auth");
+        router.replace("/");
       }
     }
   }, [user, router]);
 
-  // ২. ইমেইল বা ফোন নম্বর মাস্কিং (Masking) লজিক
+
   const maskedIdentifier = useMemo(() => {
     if (!authData?.value) return "your verification target";
 
@@ -51,20 +52,19 @@ export default function OtpVerificationPage() {
       return `••••••${visible}`;
     }
 
-    // ইমেইল মাস্কিং
     const [name, domain = ""] = identifier.split("@");
     if (!name || !domain) return identifier;
     const safeName = `${name.slice(0, 2)}${"*".repeat(Math.max(1, name.length - 2))}`;
     return `${safeName}@${domain}`;
   }, [authData]);
 
-  // ৩. ওটিপি ভেরিফিকেশন হ্যান্ডলার
+
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     if (!authData?.value) {
-      setError("Session expired. Please try registering again.");
+      toast.error("Session expired. Please try registering again.");
       return;
     }
 
@@ -74,72 +74,87 @@ export default function OtpVerificationPage() {
     }
 
     setSubmitting(true);
-
-    // ডাইনামিক পেলোড তৈরি
     const payload = authData.type === "phone" ? {phone: authData.value, otp} : {email: authData.value, otp};
 
-    try {
-      const res = await fetch("/api/auth/verify-otp", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(payload),
-      });
 
-      const data = await res.json();
+    toast.promise(
+      async () => {
+        const res = await fetch("http://localhost:5003/api/v1/auth/verify-otp", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(payload),
+        });
 
-      if (!res.ok) {
-        setError(data?.error || "OTP verification failed");
-        setSubmitting(false);
-        return;
-      }
+        const data = await res.json();
 
-      // ভেরিফিকেশন সফল হলে স্টোরেজ ক্লিন করে দিন এবং ইউজার ডাটা রি-ফেচ করুন
-      sessionStorage.removeItem("otp_auth_payload");
-      await dispatch(fetchUser()).unwrap();
+        if (!res.ok) {
+          throw new Error(data?.message || data?.error || "OTP verification failed");
+        }
 
-      setSubmitting(false);
+        sessionStorage.removeItem("otp_auth_payload");
+        const freshUser = await dispatch(fetchUser()).unwrap();
 
-      // ড্যাশবোর্ডে সম্পূর্ণ পেজ রিলোড দিয়ে নিয়ে যাওয়ার জন্য (আপনার আগের আর্কিটেকচার অনুযায়ী)
-      window.location.href = "/dashboard";
-    } catch {
-      setError("OTP verification failed");
-      setSubmitting(false);
-    }
+        return freshUser;
+      },
+      {
+        loading: "Verifying OTP code...",
+        success: (freshUser) => {
+          setSubmitting(false);
+          const path = roleBaseDashboards[freshUser?.role as UserRole] || "/dashboard";
+
+          // সম্পূর্ণ পেজ ফ্রেশ স্টেটসহ রিলোড করার জন্য window.location.href ব্যবহার করাই বেস্ট
+          // window.location.href = path;
+          return "Verification Successful!";
+        },
+        error: (err: any) => {
+          setSubmitting(false);
+          setError(err?.message || "OTP verification failed");
+          return err?.message || "OTP verification failed";
+        },
+      },
+    );
   };
 
-  // ৪. ওটিপি রিসেন্ড হ্যান্ডলার
+  // ৩. ওটিপি রিসেন্ড হ্যান্ডলার (Sonner toast.promise সহ)
   const handleResend = async () => {
-    setResendMessage("");
     setError("");
 
     if (!authData?.value) {
-      setError("Missing email or phone for OTP resend.");
+      toast.error("Missing email or phone for OTP resend.");
       return;
     }
 
     setResendLoading(true);
-
     const payload = authData.type === "phone" ? {phone: authData.value} : {email: authData.value};
 
-    try {
-      const res = await fetch("/api/auth/resend-otp", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(payload),
-      });
+    toast.promise(
+      async () => {
+        const res = await fetch("/api/auth/resend-otp", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(payload),
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      if (!res.ok) {
-        setError(data?.error || "Failed to resend OTP");
-      } else {
-        setResendMessage("OTP resent successfully.");
-      }
-    } catch {
-      setError("Failed to resend OTP");
-    } finally {
-      setResendLoading(false);
-    }
+        if (!res.ok) {
+          throw new Error(data?.error || "Failed to resend OTP");
+        }
+        return data;
+      },
+      {
+        loading: "Resending OTP code...",
+        success: () => {
+          setResendLoading(false);
+          return "OTP resent successfully.";
+        },
+        error: (err: any) => {
+          setResendLoading(false);
+          setError(err?.message || "Failed to resend OTP");
+          return err?.message || "Failed to resend OTP";
+        },
+      },
+    );
   };
 
   if (!isMounted || !authData || loading) {
@@ -173,7 +188,6 @@ export default function OtpVerificationPage() {
           </div>
 
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
-          {resendMessage ? <p className="text-sm text-green-600">{resendMessage}</p> : null}
 
           <button
             type="submit"
