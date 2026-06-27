@@ -33,7 +33,7 @@ export default function LoginForm() {
 
         setLoading(false);
         toast.success("Login Successful");
-        router.replace("/");
+        router.replace("/dashboard");
       } else {
         await dispatch(
           register({

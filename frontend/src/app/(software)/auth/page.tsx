@@ -1,4 +1,5 @@
 "use server";
+
 import LoginForm from "@/components/auth/LoginPage";
 import {Suspense} from "react";
 

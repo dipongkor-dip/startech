@@ -6,19 +6,13 @@ import {ThemeChanger} from "@/components/theme/ThemeChanger";
 import {useState} from "react";
 import {Gift, User, Hourglass} from "lucide-react";
 import {UserRole} from "@/store/slices/auth/interface";
+import {roleBaseDashboards} from "@/proxy";
 
 export default function Navbar() {
   const {user, loading} = useAppSelector((s) => s.auth);
   const [query, setQuery] = useState("");
 
-  const links = [
-    {role: UserRole.ADMIN, href: "/admin/dashboard"},
-    {role: UserRole.SUPER_ADMIN, href: "/su-admin/dashboard"},
-    {role: UserRole.CUSTOMER, href: "/dashboard"},
-    {role: UserRole.DELIVERY_BOY, href: "/delivery-boy/dashboard"},
-    {role: UserRole.CUSTOMER_SUPPORT_MANAGER, href: "/support-manager/dashboard"},
-  ];
-  const findLink = links.find((l) => l.role == user?.role)?.href;
+  const findLink = roleBaseDashboards[user?.role as UserRole];
 
   return (
     <>

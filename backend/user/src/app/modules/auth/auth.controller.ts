@@ -23,11 +23,15 @@ const login = catchAsync(async (req: Request, res: Response, next: NextFunction)
 });
 
 const register = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const {email, phone} = req.body;
   try {
     const {accessToken, refreshToken} = await authService.register(req.body);
 
     res.cookie("accessToken", accessToken, {httpOnly: true, secure: true, sameSite: "none", maxAge: 7 * 24 * 60 * 60 * 1000}); // 7 days
     res.cookie("refreshToken", refreshToken, {httpOnly: true, secure: true, sameSite: "none", maxAge: 30 * 24 * 60 * 60 * 1000}); // 30 days
+    
+    const otpKey = email ? `otp:${email}` : `otp:${phone}`;
+    const rateLimitKey = email ? `rate:${email}` : `rate:${phone}`;
 
     res.status(status.CREATED).json({success: true, message: "Registration successful. Please verify your OTP."});
   } catch (error: any) {
