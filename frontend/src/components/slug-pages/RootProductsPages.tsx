@@ -5,11 +5,11 @@ import * as React from "react";
 import Product from "./Product";
 import {ProductsFilters} from "../pagination/ProductsFilters";
 import {PaginationFilter} from "@/components/pagination/PaginationFilter";
-import {useAppDispatch, useAppSelector} from "@/store/hooks";
+import {useAppSelector} from "@/store/hooks";
 import ProductsHeader from "./ProductsHeader";
 import ChildCategories from "./ChildCategories";
-import {fetchProducts} from "@/store/slices/products/api";
 import {Category} from "@/store/slices/categories/interface";
+import {useGetProductsQuery} from "@/store/slices/products/api";
 
 function findCategoryBySlug(categories: Category[], slug?: string | null): Category | null {
   if (!slug) return null;
@@ -24,11 +24,7 @@ function findCategoryBySlug(categories: Category[], slug?: string | null): Categ
 }
 
 export default function RootProductsPages({slug, query}: {slug: string | null; query: any}) {
-  const dispatch = useAppDispatch();
   const {categories, loading: load, error: cateError} = useAppSelector((state) => state.categories);
-  const {products, loading, error} = useAppSelector((state) => state.products);
-  const [matchedCategory, setMatchedCategory] = React.useState<Category | null>(null);
-
   const normalizedQuery = React.useMemo(() => {
     const result: Record<string, string> = {};
     if (slug) result.slug = slug;
@@ -46,16 +42,15 @@ export default function RootProductsPages({slug, query}: {slug: string | null; q
 
     return result;
   }, [query, slug]);
+  const {data: products, isLoading: loading, error} = useGetProductsQuery(normalizedQuery);
+  console.log("object", products, error);
+  const [matchedCategory, setMatchedCategory] = React.useState<Category | null>(null);
 
   React.useEffect(() => {
     if (slug && categories.length) {
       setMatchedCategory(findCategoryBySlug(categories, slug));
     }
   }, [slug, categories]);
-
-  React.useEffect(() => {
-    dispatch(fetchProducts(normalizedQuery));
-  }, [normalizedQuery, dispatch, query, matchedCategory?.id]);
 
   const childCategories = matchedCategory?.child ?? [];
 
@@ -94,9 +89,9 @@ export default function RootProductsPages({slug, query}: {slug: string | null; q
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 min-h-[calc(100vh-26rem)]">
             {loading && <div className="col-span-full py-16 text-center text-sm text-muted-foreground">Loading products...</div>}
 
-            {!loading && error && <div className="col-span-full py-16 text-center text-sm text-destructive">{error}</div>}
+            {!loading && error && <div className="col-span-full py-16 text-center text-sm text-destructive">Error Loading products</div>}
 
-            {!loading && !error && products.length === 0 && (
+            {!loading && !error && products?.length === 0 && (
               <div className="col-span-full py-16 text-center text-sm text-muted-foreground space-y-4">
                 <strong>Sorry! No Product Found</strong>
                 <p>Please try searching for something else</p>
@@ -106,8 +101,7 @@ export default function RootProductsPages({slug, query}: {slug: string | null; q
             {/* 🎯 ডাইনামিক স্লাগ পাসিং লুপ */}
             {!loading &&
               !error &&
-              products.length > 0 &&
-              products.map((product, i: number) => {
+              products?.map((product, i: number) => {
                 // প্রোডাক্টের category (id অথবা slug reference) দিয়ে ম্যাপ থেকে ডাইনামিক স্লাগ নেওয়া হচ্ছে,
                 // না পাওয়া গেলে প্যারেন্টের মেইন স্লাগ ফলব্যাক হবে
                 const dynamicSlug = childSlugMap.get(String(product.categoryId)) || matchedCategory?.slug || "products";

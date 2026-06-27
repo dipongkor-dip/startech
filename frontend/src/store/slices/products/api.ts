@@ -1,174 +1,63 @@
-import {createAsyncThunk} from "@reduxjs/toolkit";
-import {Product} from "./interface";
+import {baseApi, SERVICES_URL} from "@/store/baseAPI";
+import {Product, CreateProductData, UpdateProductData} from "./interface";
 
-export interface CreateProductData {
-  name: string;
-  description: string;
-  price: number;
-  category: string;
-  image?: string;
-  stock: number;
-  status: "active" | "inactive" | "out_of_stock";
-}
+export const productsApi = baseApi.injectEndpoints({
+  endpoints: (builder) => ({
+    // 🔍 ১. সব প্রোডাক্ট ফেচ করা (কোয়েরি প্যারামিটারসহ)
+    getProducts: builder.query<Product[], any>({
+      query: (params) => {
+        return {
+          url: `${SERVICES_URL.PRODUCT}/products`,
+          method: "GET",
+          params: params,
+        };
+      },
+      transformResponse: (response: any) => response?.data?.products ?? [],
+      providesTags: ["PRODUCTS"],
+    }),
 
-export interface UpdateProductData {
-  id: string;
-  product: Partial<Product>;
-}
+    // 🔍 ২. একটি নির্দিষ্ট প্রোডাক্ট ফেচ করা
+    getProductById: builder.query<Product, string>({
+      query: (id) => ({
+        url: `${SERVICES_URL.PRODUCT}/products/${id}`,
+        method: "GET",
+      }),
+      transformResponse: (response: any) => response?.data ?? response,
+      providesTags: (result, error, id) => [{type: "PRODUCT", id}],
+    }),
 
-// Helper function to get products base URL
-const baseUrl = "http://localhost:5004/api/v1";
+    // ➕ ৩. নতুন প্রোডাক্ট তৈরি করা
+    createProduct: builder.mutation<Product, CreateProductData>({
+      query: (newProduct) => ({
+        url: `${SERVICES_URL.PRODUCT}/products`,
+        method: "POST",
+        body: newProduct,
+      }),
+      // প্রোডাক্ট ক্রিয়েট হলে অটোমেটিক সব প্রোডাক্টের লিস্ট রি-ফেচ হবে
+      invalidatesTags: ["PRODUCTS"],
+    }),
 
-const getProductsBaseUrl = () => {
-  return `${baseUrl}/products`;
-};
+    // 📝 ৪. প্রোডাক্ট আপডেট করা
+    updateProduct: builder.mutation<Product, UpdateProductData>({
+      query: ({id, product}) => ({
+        url: `${SERVICES_URL.PRODUCT}/products/${id}`,
+        method: "PUT",
+        body: product,
+      }),
+      // আপডেট হলে মেইন লিস্ট এবং ঐ নির্দিষ্ট প্রোডাক্টের ক্যাশ দুইটাই রিফ্রেশ হবে
+      invalidatesTags: (result, error, {id}) => ["PRODUCTS", {type: "PRODUCT", id}],
+    }),
 
-// API functions
-const buildQueryString = (params: any): string => {
-  if (!params) return "";
-  if (typeof params === "string") {
-    return params.startsWith("?") ? params.slice(1) : params;
-  }
-  if (params instanceof URLSearchParams) {
-    return params.toString();
-  }
-
-  const entries = Object.entries(params).flatMap(([key, value]) => {
-    if (value === undefined || value === null || value === "") return [];
-    if (Array.isArray(value)) {
-      return value.map((item) => [key, String(item)] as [string, string]);
-    }
-    return [[key, String(value)]] as [string, string][];
-  });
-
-  return new URLSearchParams(entries).toString();
-};
-
-const fetchProductsAPI = async (params: any): Promise<Product[]> => {
-  const queryString = buildQueryString(params);
-  const url = queryString ? `${getProductsBaseUrl()}?${queryString}` : getProductsBaseUrl();
-
-  const res = await fetch(url, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-  });
-
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.message || data.error || "Failed to fetch products");
-  }
-
-  return data?.data?.products ?? [];
-};
-
-const fetchProductAPI = async (id: string): Promise<Product> => {
-  const res = await fetch(`${getProductsBaseUrl()}/${id}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-  });
-
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.message || data.error || "Failed to fetch product");
-  }
-
-  return data;
-};
-
-const createProductAPI = async (product: CreateProductData): Promise<Product> => {
-  const res = await fetch(getProductsBaseUrl(), {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify(product),
-  });
-
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.message || data.error || "Failed to create product");
-  }
-
-  return data;
-};
-
-const updateProductAPI = async ({id, product}: UpdateProductData): Promise<Product> => {
-  const res = await fetch(`${getProductsBaseUrl()}/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify(product),
-  });
-
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.message || data.error || "Failed to update product");
-  }
-
-  return data;
-};
-
-const deleteProductAPI = async (id: string): Promise<void> => {
-  const res = await fetch(`${getProductsBaseUrl()}/${id}`, {
-    method: "DELETE",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to delete product");
-  }
-};
-
-// Redux thunks
-export const fetchProducts = createAsyncThunk<Product[], any, {rejectValue: string}>("products/fetchProducts", async (params: any, {rejectWithValue}) => {
-  try {
-    return await fetchProductsAPI(params);
-  } catch (error) {
-    return rejectWithValue(error instanceof Error ? error.message : "Failed to fetch products");
-  }
+    // ❌ ৫. প্রোডাক্ট ডিলিট করা
+    deleteProduct: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `${SERVICES_URL.PRODUCT}/products/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["PRODUCTS"],
+    }),
+  }),
 });
 
-export const fetchProduct = createAsyncThunk<Product, string, {rejectValue: string}>("products/fetchProductById", async (id, {rejectWithValue}) => {
-  try {
-    return await fetchProductAPI(id);
-  } catch (error) {
-    return rejectWithValue(error instanceof Error ? error.message : "Failed to fetch product");
-  }
-});
-
-export const createProduct = createAsyncThunk<Product, CreateProductData, {rejectValue: string}>("products/createProduct", async (product, {rejectWithValue}) => {
-  try {
-    return await createProductAPI(product);
-  } catch (error) {
-    return rejectWithValue(error instanceof Error ? error.message : "Failed to create product");
-  }
-});
-
-export const updateProduct = createAsyncThunk<Product, UpdateProductData, {rejectValue: string}>("products/updateProduct", async ({id, product}, {rejectWithValue}) => {
-  try {
-    return await updateProductAPI({id, product});
-  } catch (error) {
-    return rejectWithValue(error instanceof Error ? error.message : "Failed to update product");
-  }
-});
-
-export const deleteProduct = createAsyncThunk<string, string, {rejectValue: string}>("products/deleteProduct", async (id, {rejectWithValue}) => {
-  try {
-    await deleteProductAPI(id);
-    return id;
-  } catch (error) {
-    return rejectWithValue(error instanceof Error ? error.message : "Failed to delete product");
-  }
-});
+// ফ্রন্টএন্ডে ব্যবহারের জন্য অটো-জেনারেটেড হুকগুলো এক্সপোর্ট করা হচ্ছে
+export const {useGetProductsQuery, useGetProductByIdQuery, useCreateProductMutation, useUpdateProductMutation, useDeleteProductMutation} = productsApi;

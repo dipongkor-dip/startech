@@ -24,3 +24,29 @@ export const initialState: ProductState = {
   loading: false,
   error: null,
 };
+
+export interface CreateProductData {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  categoryId: string;
+  image?: string;
+  stock: number;
+  status: "active" | "inactive" | "out_of_stock";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpdateProductData {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  categoryId: string;
+  image?: string;
+  stock: number;
+  status: "active" | "inactive" | "out_of_stock";
+  createdAt: string;
+  updatedAt: string;
+}

@@ -8,7 +8,7 @@ import { category } from "../app/modules/shared/categories/categories.model";
 
 export const seedCategories = async () => {
   try {
-    // await category.insertMany(categoriesData, { ordered: false });
+    await category.insertMany(categoriesData, { ordered: false });
     // await category.insertMany(desktopData, {ordered: false});
     // await category.insertMany(demoPhone, {ordered: false});
     // await category.insertMany(monitors, {ordered: false});

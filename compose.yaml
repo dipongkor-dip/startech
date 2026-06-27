@@ -29,6 +29,11 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 3s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -47,15 +52,17 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: rabbitmq
     ports:
-      - "5672:5672" # broker port (amqplib connect করবে)
-      - "15672:15672" # management UI
+      - "5672:5672"   
+      - "15672:15672" 
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    restart: always
+    # 🛠️ আলপাইন ইমেজের জন্য সবচেয়ে নিরাপদ এবং ১০০% ওয়ার্কিং হেলথচেক (Netcat পোর্ট চেকার)
     healthcheck:
-      test: [ "CMD", "rabbitmqctl", "status" ]
-      interval: 5s
-      timeout: 10s
-      retries: 5
+      test: ["CMD-SHELL", "nc -z localhost 5672 || exit 1"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
 
   frontend:
     build:
@@ -69,45 +76,9 @@ services:
       PORT: 3000
     volumes:
       - ./frontend:/app
-      # - frontend_node_modules:/app/node_modules
-      # - ./frontend/.pnpm-store:/app/.pnpm-store
     depends_on:
       - user
     command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm exec next dev --hostname 0.0.0.0 --port 3000"
-
-  # delivery:
-  #   build:
-  #     context: ./backend/delivery
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "5001:5001"
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     PORT: 5001
-  #   volumes:
-  #     - ./backend/delivery:/app
-  #     - ./backend/delivery/node_modules:/app/node_modules
-  #     - ./backend/delivery/.pnpm-store:/app/.pnpm-store
-  #     - ./backend/delivery/logs:/app/logs
-  #   command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm dev"
-
-  # order:
-  #   build:
-  #     context: ./backend/order
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "5002:5002"
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     PORT: 5002
-  #   volumes:
-  #     - ./backend/order:/app
-  #     - ./backend/order/node_modules:/app/node_modules
-  #     - ./backend/order/.pnpm-store:/app/.pnpm-store
-  #     - ./backend/order/logs:/app/logs
-  #   command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm dev"
 
   user:
     build:
@@ -129,23 +100,6 @@ services:
       - ./backend/user/logs:/app/logs
     command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm db:migrate && pnpm dev"
 
-  # chat:
-  #   build:
-  #     context: ./backend/chat
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "5006:5006"
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     PORT: 5006
-  #   volumes:
-  #     - ./backend/chat:/app
-  #     - ./backend/chat/node_modules:/app/node_modules
-  #     - ./backend/chat/.pnpm-store:/app/.pnpm-store
-  #     - ./backend/chat/logs:/app/logs
-  #   command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm dev"
-
   product:
     build:
       context: ./backend/product
@@ -157,33 +111,16 @@ services:
     environment:
       PORT: 5004
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     volumes:
       - ./backend/product:/app
       - ./backend/product/node_modules:/app/node_modules
       - ./backend/product/.pnpm-store:/app/.pnpm-store
       - ./backend/product/logs:/app/logs
     command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm dev"
-
-  # payment:
-  #   build:
-  #     context: ./backend/payment
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "5005:5005"
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     PORT: 5005
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   volumes:
-  #     - ./backend/payment:/app
-  #     - ./backend/payment/node_modules:/app/node_modules
-  #     - ./backend/payment/.pnpm-store:/app/.pnpm-store
-  #     - ./backend/payment/logs:/app/logs
-  #   command: sh -c "CI=true pnpm install --no-frozen-lockfile && pnpm dev"
 
 volumes:
   postgres_data:

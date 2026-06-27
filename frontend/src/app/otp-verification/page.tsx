@@ -22,7 +22,6 @@ export default function OtpVerificationPage() {
   const {user, loading} = useAppSelector((state) => state.auth);
   const [authData, setAuthData] = useState<{type: "email" | "phone"; value: string} | null>(null);
 
-
   useEffect(() => {
     setIsMounted(true);
     const savedPayload = sessionStorage.getItem("otp_auth_payload");
@@ -41,7 +40,6 @@ export default function OtpVerificationPage() {
     }
   }, [user, router]);
 
-
   const maskedIdentifier = useMemo(() => {
     if (!authData?.value) return "your verification target";
 
@@ -57,7 +55,6 @@ export default function OtpVerificationPage() {
     const safeName = `${name.slice(0, 2)}${"*".repeat(Math.max(1, name.length - 2))}`;
     return `${safeName}@${domain}`;
   }, [authData]);
-
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +73,6 @@ export default function OtpVerificationPage() {
     setSubmitting(true);
     const payload = authData.type === "phone" ? {phone: authData.value, otp} : {email: authData.value, otp};
 
-
     toast.promise(
       async () => {
         const res = await fetch("http://localhost:5003/api/v1/auth/verify-otp", {
@@ -92,15 +88,14 @@ export default function OtpVerificationPage() {
         }
 
         sessionStorage.removeItem("otp_auth_payload");
-        const freshUser = await dispatch(fetchUser()).unwrap();
 
-        return freshUser;
+        return data;
       },
       {
         loading: "Verifying OTP code...",
-        success: (freshUser) => {
+        success: () => {
           setSubmitting(false);
-          const path = roleBaseDashboards[freshUser?.role as UserRole] || "/dashboard";
+          const path = roleBaseDashboards[user?.role as UserRole] || "/dashboard";
 
           // সম্পূর্ণ পেজ ফ্রেশ স্টেটসহ রিলোড করার জন্য window.location.href ব্যবহার করাই বেস্ট
           // window.location.href = path;

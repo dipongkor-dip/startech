@@ -1,89 +1,49 @@
 import {createAsyncThunk} from "@reduxjs/toolkit";
 import type {LoginCredentials, LoginResponse, RegisterData, RegisterResponse, User, VerifyOtpCredentials, VerifyOtpResponse} from "./interface";
+import axios from "axios";
 
 // Helper function to get auth base URL
-const getAuthBaseUrl = () => `http://localhost:5003/api/v1/auth`;
+export const axiosInstance = axios.create({
+  baseURL: "http://localhost:5003/api/v1",
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-// API functions
-const fetchUserAPI = async (): Promise<User> => {
-  let res = await fetch(`${getAuthBaseUrl()}/me`, {
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-
-  const data = await res.json();
-  return data?.data ?? data;
+export const fetchUserAPI = async (): Promise<User> => {
+  const res = await axiosInstance.get("/auth/me");
+  return res.data?.data ?? res.data;
 };
 
-const loginAPI = async (credentials: LoginCredentials): Promise<LoginResponse> => {
-  const res = await fetch(`${getAuthBaseUrl()}/login`, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    credentials: "include",
-    body: JSON.stringify(credentials),
-  });
-
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.message || data.error || "Login failed");
-  }
-
-  return data.data || data;
+export const loginAPI = async (credentials: LoginCredentials): Promise<LoginResponse> => {
+  const res = await axiosInstance.post("/auth/login", credentials);
+  return res.data?.data ?? res.data;
 };
 
-const registerAPI = async (userData: RegisterData): Promise<RegisterResponse> => {
+export const registerAPI = async (userData: RegisterData): Promise<RegisterResponse> => {
   const payload = {
     email: userData.email || undefined,
     phone: userData.phone || undefined,
     password: userData.password,
     name: userData.name,
   };
-
-  const res = await fetch(`${getAuthBaseUrl()}/register`, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    credentials: "include",
-    body: JSON.stringify(payload),
-  });
-
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.message || data.error || "Registration failed");
-  }
-
-  return data;
+  const res = await axiosInstance.post("/auth/register", payload);
+  return res.data;
 };
 
-const logoutAPI = async (): Promise<void> => {
-  const res = await fetch(`${getAuthBaseUrl()}/logout`, {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error("Logout failed");
-  }
+export const verifyOtpAPI = async (credentials: VerifyOtpCredentials): Promise<{status: boolean; message: string}> => {
+  const res = await axiosInstance.post("/auth/send-otp", credentials);
+  return res.data;
 };
 
-const verifyOtpAPI = async (credentials: VerifyOtpCredentials): Promise<VerifyOtpResponse> => {
-  const res = await fetch(`${getAuthBaseUrl()}/send-otp`, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    credentials: "include",
-    body: JSON.stringify(credentials),
-  });
+export const sendOTP = async (credentials: {email: string | undefined; phone: string | undefined}): Promise<{status: boolean; message: string}> => {
+  const res = await axiosInstance.post("/auth/otp-verify", credentials);
+  return res.data;
+};
 
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.message || data.error || "Login failed");
-  }
-
-  return data;
+export const logoutAPI = async (): Promise<void> => {
+  await axiosInstance.post("/auth/logout");
 };
 
 // Redux thunks
@@ -103,13 +63,27 @@ export const login = createAsyncThunk<LoginResponse, LoginCredentials, {rejectVa
   }
 });
 
-export const verifyOtp = createAsyncThunk<VerifyOtpResponse, VerifyOtpCredentials, {rejectValue: string}>("auth/verify-otp", async (credentials, {rejectWithValue}) => {
-  try {
-    return await verifyOtpAPI(credentials);
-  } catch (error) {
-    return rejectWithValue(error instanceof Error ? error.message : "OTP verification failed");
-  }
-});
+export const sendOtp = createAsyncThunk<{status: boolean; message: string}, {email: string | undefined; phone: string | undefined}, {rejectValue: string}>(
+  "auth/send-otp",
+  async (credentials, {rejectWithValue}) => {
+    try {
+      return await sendOTP(credentials);
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : "OTP Sending failed");
+    }
+  },
+);
+
+export const verifyOtp = createAsyncThunk<{status: boolean; message: string}, VerifyOtpCredentials, {rejectValue: string}>(
+  "auth/verify-otp",
+  async (credentials, {rejectWithValue}) => {
+    try {
+      return await verifyOtpAPI(credentials);
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : "OTP verification failed");
+    }
+  },
+);
 
 export const register = createAsyncThunk<RegisterResponse, RegisterData, {rejectValue: string}>("auth/register", async (userData, {rejectWithValue}) => {
   try {

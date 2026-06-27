@@ -9,6 +9,6 @@ import {validateSchema} from "../../middleware/validateSchema";
 const router = Router();
 
 // protected routes
-router.post("/create", authentication(UserRole.ADMIN), validateSchema(createPermissionSchema), productPermissionController.createPermission);
+router.post("/create", authentication(UserRole.ADMIN, UserRole.SUPER_ADMIN), validateSchema(createPermissionSchema), productPermissionController.createPermission);
 
 export const productPermissionRoutes = router;

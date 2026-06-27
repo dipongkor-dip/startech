@@ -4,12 +4,13 @@ import {useState} from "react";
 import Link from "next/link";
 import {useAppDispatch, useAppSelector} from "@/store/hooks";
 import {Button} from "@/components/ui/button";
-import {fetchUser, login, register} from "@/store/slices/auth/api";
+import {login, register} from "@/store/slices/auth/api";
 import PassportLogin from "./PassportLogin";
 import {useRouter} from "next/navigation";
 import {UserRole} from "@/store/slices/auth/interface";
 import {toast} from "sonner";
 import {roleBaseDashboards} from "@/proxy";
+import {store} from "@/store";
 
 export default function LoginForm() {
   const dispatch = useAppDispatch();
@@ -33,8 +34,6 @@ export default function LoginForm() {
       if (mode === "login") {
         await dispatch(login({email: login_email, phone: login_phone, password})).unwrap();
 
-        await dispatch(fetchUser());
-
         if (!authLoading && user && !user.isValidated) {
           const payload = {type: login_email ? "email" : "phone", value: loginValue};
 
@@ -44,8 +43,11 @@ export default function LoginForm() {
         setLoading(false);
         toast.success("Login Successful");
 
-        const path = roleBaseDashboards[user?.role as UserRole];
-        router.replace(`${path}`);
+        const newUser = store.getState().auth.user;
+
+        const path = roleBaseDashboards[newUser?.role as UserRole];
+
+        router.replace(path);
       } else {
         await dispatch(
           register({
@@ -56,8 +58,6 @@ export default function LoginForm() {
           }),
         ).unwrap();
 
-        const identifier = loginValue.includes("@") ? loginValue : undefined;
-        const phone = !loginValue.includes("@") ? loginValue : undefined;
         setLoading(false);
 
         const payload = {type: login_email ? "email" : "phone", value: loginValue};

@@ -22,13 +22,13 @@ const SendOTP = () => {
         if (parsed.type === "email" || parsed.type === "phone") {
           setAuthData(parsed);
         } else {
-          // router.replace("/");
+          router.replace("/");
         }
       } catch (e) {
-        // router.replace("/");
+        router.replace("/");
       }
     } else {
-      // router.replace("/");
+      router.replace("/");
     }
   }, [router]);
 
