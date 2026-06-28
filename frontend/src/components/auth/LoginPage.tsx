@@ -57,10 +57,6 @@ export default function LoginForm() {
 
         setLoading(false);
 
-        const payload = {type: login_email ? "email" : "phone", value: loginValue};
-
-        sessionStorage.setItem("otp_auth_payload", JSON.stringify(payload));
-
         router.replace("/send-otp");
       }
     } catch (err: any) {
