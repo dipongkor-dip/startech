@@ -1,5 +1,5 @@
 import {createAsyncThunk} from "@reduxjs/toolkit";
-import type {LoginCredentials, LoginResponse, RegisterData, RegisterResponse, User, VerifyOtpCredentials, VerifyOtpResponse} from "./interface";
+import type {LoginCredentials, LoginResponse, RegisterData, RegisterResponse, User, VerifyOtpCredentials} from "./interface";
 import axios from "axios";
 
 // Helper function to get auth base URL
@@ -33,12 +33,12 @@ export const registerAPI = async (userData: RegisterData): Promise<RegisterRespo
 };
 
 export const verifyOtpAPI = async (credentials: VerifyOtpCredentials): Promise<{status: boolean; message: string}> => {
-  const res = await axiosInstance.post("/auth/send-otp", credentials);
+  const res = await axiosInstance.post("/auth/verify-otp", credentials);
   return res.data;
 };
 
 export const sendOTP = async (credentials: {email: string | undefined; phone: string | undefined}): Promise<{status: boolean; message: string}> => {
-  const res = await axiosInstance.post("/auth/otp-verify", credentials);
+  const res = await axiosInstance.post("/auth/send-otp", credentials);
   return res.data;
 };
 
@@ -55,11 +55,36 @@ export const fetchUser = createAsyncThunk<User, void, {rejectValue: string}>("au
   }
 });
 
-export const login = createAsyncThunk<LoginResponse, LoginCredentials, {rejectValue: string}>("auth/login", async (credentials, {rejectWithValue}) => {
+// 🟢 লগইন থাঙ্ক আপডেট
+export const login = createAsyncThunk<LoginResponse, LoginCredentials, {rejectValue: string}>("auth/login", async (credentials, {rejectWithValue, dispatch}) => {
+  // 🎯 ১. এখানে dispatch যুক্ত করুন
   try {
-    return await loginAPI(credentials);
-  } catch (error) {
-    return rejectWithValue(error instanceof Error ? error.message : "Login failed");
+    const response = await loginAPI(credentials);
+
+    // 🎯 ২. লগইন সফল হলে সাথে সাথে ইউজার প্রোফাইল ফেচ করার থাঙ্ক কল হবে
+    await dispatch(fetchUser());
+
+    return response;
+  } catch (error: any) {
+    // 💡 প্রফেশনাল ট্রিক: Axios এর আসল ব্যাকএন্ড এরর মেসেজ পাস করা
+    const errMsg = error.response?.data?.message || error.message || "Login failed";
+    return rejectWithValue(errMsg);
+  }
+});
+
+// 🟢 রেজিস্ট্রেশন থাঙ্ক আপডেট
+export const register = createAsyncThunk<RegisterResponse, RegisterData, {rejectValue: string}>("auth/register", async (userData, {rejectWithValue, dispatch}) => {
+  // 🎯 ১. এখানে dispatch যুক্ত করুন
+  try {
+    const response = await registerAPI(userData);
+
+    // 🎯 ২. রেজিস্ট্রেশন সফল হলে (যদি আপনার আর্কিটেকচারে রেজিস্ট্রেশনের পর সরাসরি লগইন হয়ে যায়)
+    await dispatch(fetchUser());
+
+    return response;
+  } catch (error: any) {
+    const errMsg = error.response?.data?.message || error.message || "Registration failed";
+    return rejectWithValue(errMsg);
   }
 });
 
@@ -76,26 +101,27 @@ export const sendOtp = createAsyncThunk<{status: boolean; message: string}, {ema
 
 export const verifyOtp = createAsyncThunk<{status: boolean; message: string}, VerifyOtpCredentials, {rejectValue: string}>(
   "auth/verify-otp",
-  async (credentials, {rejectWithValue}) => {
+  async (credentials, {rejectWithValue, dispatch}) => {
+    // 🎯 dispatch যুক্ত করা হলো
     try {
-      return await verifyOtpAPI(credentials);
-    } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : "OTP verification failed");
+      const response = await verifyOtpAPI(credentials);
+
+      // 🎯 ওটিপি সফলভাবে ভেরিফাই হলে ইউজারের কারেন্ট প্রোফাইল লোড হবে
+      await dispatch(fetchUser());
+
+      return response;
+    } catch (error: any) {
+      const errMsg = error.response?.data?.message || error.message || "OTP verification failed";
+      return rejectWithValue(errMsg);
     }
   },
 );
 
-export const register = createAsyncThunk<RegisterResponse, RegisterData, {rejectValue: string}>("auth/register", async (userData, {rejectWithValue}) => {
-  try {
-    return await registerAPI(userData);
-  } catch (error) {
-    return rejectWithValue(error instanceof Error ? error.message : "Registration failed");
-  }
-});
-
 export const logout = createAsyncThunk<void, void, {rejectValue: string}>("auth/logout", async (_, {rejectWithValue}) => {
   try {
     await logoutAPI();
+
+    
   } catch (error) {
     return rejectWithValue(error instanceof Error ? error.message : "Logout failed");
   }

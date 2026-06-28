@@ -67,6 +67,7 @@ const verifyOtp = async (payload: verifyOtpDTO) => {
 // POST /auth/login - email or phone + password (body: { login: "email@x.com"|"phone", password })
 const login = async (payload: loginDTO) => {
   const {email, phone, password} = payload;
+  console.log("object", email, phone, password);
 
   let user;
 
@@ -76,17 +77,20 @@ const login = async (payload: loginDTO) => {
   // });
 
   if (email) {
-    user = await prisma.user.findUnique({where: {email}, select: {password: true, id: true, role: true, isValidated: true, needPasswordReset: true}});
+    user = await prisma.user.findUnique({where: {email}, select: {password: true, id: true, role: true}});
   } else if (phone) {
-    user = await prisma.user.findUnique({where: {phone}, select: {password: true, id: true, role: true, isValidated: true, needPasswordReset: true}});
+    user = await prisma.user.findUnique({where: {phone}, select: {password: true, id: true, role: true}});
   } else {
     throw new ServerError(status.FORBIDDEN, "Invalid credentials");
   }
 
+  console.log(user);
+  
   if (!user || !user.password) throw new ServerError(status.NOT_FOUND, !user ? "None of your accounts were found." : "User does not have a password set");
-
+  
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) throw new ServerError(status.UNAUTHORIZED, "Invalid credentials");
+  console.log("isValid", isValid);
 
   const accessToken = signAccessToken(user.id, user.role);
   const refreshToken = signRefreshToken(user.id, user.role);
@@ -96,7 +100,7 @@ const login = async (payload: loginDTO) => {
 // GET /auth/me
 const getMe = async (userId: string) => {
   const user = await prisma.user.findUnique({
-    where: {id: userId, isValidated: true, needPasswordReset: false},
+    where: {id: userId},
     select: {id: true, email: true, phone: true, role: true, status: true, isValidated: true, needPasswordReset: true},
   });
 

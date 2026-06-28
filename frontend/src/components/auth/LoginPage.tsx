@@ -7,10 +7,10 @@ import {Button} from "@/components/ui/button";
 import {login, register} from "@/store/slices/auth/api";
 import PassportLogin from "./PassportLogin";
 import {useRouter} from "next/navigation";
-import {UserRole} from "@/store/slices/auth/interface";
 import {toast} from "sonner";
-import {roleBaseDashboards} from "@/proxy";
 import {store} from "@/store";
+import {roleBaseDashboards} from "@/proxy";
+import {UserRole} from "@/store/slices/auth/interface";
 
 export default function LoginForm() {
   const dispatch = useAppDispatch();
@@ -21,7 +21,6 @@ export default function LoginForm() {
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>();
   const [loading, setLoading] = useState<boolean>(false);
-  const {user, loading: authLoading} = useAppSelector((state) => state.auth);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,20 +31,18 @@ export default function LoginForm() {
 
     try {
       if (mode === "login") {
-        await dispatch(login({email: login_email, phone: login_phone, password})).unwrap();
-
-        if (!authLoading && user && !user.isValidated) {
-          const payload = {type: login_email ? "email" : "phone", value: loginValue};
-
-          sessionStorage.setItem("otp_auth_payload", JSON.stringify(payload));
-        }
-
+        const data = await dispatch(login({email: login_email, phone: login_phone, password})).unwrap();
+        console.log(data);
         setLoading(false);
-        toast.success("Login Successful");
+        toast.success(data.message);
 
-        const newUser = store.getState().auth.user;
+        const {user} = store.getState().auth;
 
-        const path = roleBaseDashboards[newUser?.role as UserRole];
+        let path = roleBaseDashboards[user?.role as UserRole];
+
+        if (user && !user.isValidated && user.role !== UserRole.CUSTOMER) {
+          path = "/send-otp";
+        }
 
         router.replace(path);
       } else {

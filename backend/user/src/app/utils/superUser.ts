@@ -22,7 +22,6 @@ const superUser = async () => {
         password: hashedPassword,
         role: UserRole.SUPER_ADMIN,
         needPasswordReset: false,
-        isValidated: true,
       },
     });
 

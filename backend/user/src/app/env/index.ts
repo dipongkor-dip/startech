@@ -5,7 +5,7 @@ dotenv.config();
 export const env = {
   nodeEnv: process.env.NODE_ENV,
   corsOrigin: process.env.FRONTEND_URL,
-  
+
   port: process.env.USER_PORT,
   databaseUrl: process.env.POST_DATABASE_URL,
 
@@ -14,7 +14,7 @@ export const env = {
 
   facebookAppId: process.env.FACEBOOK_APP_ID,
   facebookAppSecret: process.env.FACEBOOK_APP_SECRET,
-  
+
   smsGatewayDomain: process.env.SMS_GATEWAY_DOMAIN,
 
   jwt_secret: process.env.JWT_SECRET as string,
@@ -31,7 +31,12 @@ export const env = {
   rabbitmq_url: process.env.RABBITMQ_URL || "amqp://rabbitmq:5672",
 
   superAdmin: {
-    email: process.env.SUPER_ADMIN_EMAIL || "superadmin1@gmail.com",
-    password: process.env.SUPER_ADMIN_PASSWORD || "admin123***",
+    email: process.env.SUPER_ADMIN_EMAIL || "dipongkorroy00000@gmail.com",
+    password: process.env.SUPER_ADMIN_PASSWORD || "abAB12**",
+  },
+
+  sms: {
+    gateway_url: process.env.SMS_GATEWAY_URL as string,
+    gateway_token: process.env.SMS_GATEWAY_TOKEN as string,
   },
 };

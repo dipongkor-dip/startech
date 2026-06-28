@@ -77,7 +77,7 @@ const verifyOtp = catchAsync(async (req: Request, res: Response, next: NextFunct
   const {email, phone, otp} = req.body;
 
   try {
-    const {accessToken, refreshToken, isValidated} = await authService.verifyOtp(req.body as verifyOtpDTO);
+    const {accessToken, refreshToken} = await authService.verifyOtp(req.body as verifyOtpDTO);
 
     if (email) {
       const otpKey = `otp:${email}`;
@@ -93,7 +93,7 @@ const verifyOtp = catchAsync(async (req: Request, res: Response, next: NextFunct
       res.cookie("accessToken", accessToken, {httpOnly: true, secure: true, sameSite: "none", maxAge: 7 * 24 * 60 * 60 * 1000}); // 7 days
       res.cookie("refreshToken", refreshToken, {httpOnly: true, secure: true, sameSite: "none", maxAge: 30 * 24 * 60 * 60 * 1000}); // 30 days
 
-      res.status(status.OK).json({success: true, message: "OTP verified successfully", isValidated});
+      res.status(status.OK).json({success: true, message: "OTP verified successfully"});
     } else if (phone) {
       const otpKey = `otp:${phone}`;
       const storedOtp = await getOTP(otpKey);
@@ -108,7 +108,7 @@ const verifyOtp = catchAsync(async (req: Request, res: Response, next: NextFunct
       res.cookie("accessToken", accessToken, {httpOnly: true, secure: true, sameSite: "none", maxAge: 7 * 24 * 60 * 60 * 1000}); // 7 days
       res.cookie("refreshToken", refreshToken, {httpOnly: true, secure: true, sameSite: "none", maxAge: 30 * 24 * 60 * 60 * 1000}); // 30 days
 
-      res.status(status.OK).json({success: true, message: "OTP verified successfully", isValidated});
+      res.status(status.OK).json({success: true, message: "OTP verified successfully"});
     } else {
       res.status(status.BAD_REQUEST).json({success: false, message: "Email or phone is required"});
     }

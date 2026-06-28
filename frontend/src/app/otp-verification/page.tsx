@@ -4,10 +4,10 @@ import {useEffect, useMemo, useState} from "react";
 import Link from "next/link";
 import {useRouter} from "next/navigation";
 import {useAppDispatch, useAppSelector} from "@/store/hooks";
-import {fetchUser} from "@/store/slices/auth/api";
-import {UserRole} from "@/store/slices/auth/interface";
-import {roleBaseDashboards} from "@/proxy";
+import {sendOtp, verifyOtp} from "@/store/slices/auth/api";
 import {toast} from "sonner";
+import {roleBaseDashboards} from "@/proxy";
+import {UserRole} from "@/store/slices/auth/interface";
 
 export default function OtpVerificationPage() {
   const router = useRouter();
@@ -17,53 +17,46 @@ export default function OtpVerificationPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
   const {user, loading} = useAppSelector((state) => state.auth);
-  const [authData, setAuthData] = useState<{type: "email" | "phone"; value: string} | null>(null);
 
   useEffect(() => {
-    setIsMounted(true);
-    const savedPayload = sessionStorage.getItem("otp_auth_payload");
-
-    if ((user && user?.isValidated) || !savedPayload) {
-      router.replace("/");
-      return;
-    }
-
-    if (savedPayload) {
-      try {
-        setAuthData(JSON.parse(savedPayload));
-      } catch (e) {
+    if (!loading) {
+      if (user && user?.isValidated) {
         router.replace("/");
+        return;
+      }
+      // যদি রিফ্রেশ বা অন্য কারণে রেডক্স স্টেট থেকে ইউজার উধাও হয়ে যায়, লগইনে পাঠান
+      if (!user) {
+        router.replace("/auth");
       }
     }
-  }, [user, router]);
+  }, [user, loading, router]);
 
+  // 🎯 ৩. sessionStorage ছাড়াই ডাইনামিক মাস্কিং লজিক
   const maskedIdentifier = useMemo(() => {
-    if (!authData?.value) return "your verification target";
+    if (!user) return "your verification target";
 
-    const identifier = authData.value;
+    // ইউজারের ইমেইল থাকলে ইমেইল, না থাকলে ফোন ব্যবহার হবে
+    if (user.email) {
+      const [name, domain = ""] = user.email.split("@");
+      if (!name || !domain) return user.email;
+      const safeName = `${name.slice(0, 2)}${"*".repeat(Math.max(1, name.length - 2))}`;
+      return `${safeName}@${domain}`;
+    }
 
-    if (authData.type === "phone") {
-      const visible = identifier.slice(-4);
+    if (user.phone) {
+      const visible = user.phone.slice(-4);
       return `••••••${visible}`;
     }
 
-    const [name, domain = ""] = identifier.split("@");
-    if (!name || !domain) return identifier;
-    const safeName = `${name.slice(0, 2)}${"*".repeat(Math.max(1, name.length - 2))}`;
-    return `${safeName}@${domain}`;
-  }, [authData]);
+    return "your contact method";
+  }, [user]);
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!authData?.value) {
-      toast.error("Session expired. Please try registering again.");
-      return;
-    }
+    if (!user) return;
 
     if (!/^\d{4,8}$/.test(otp)) {
       setError("Enter a valid OTP code.");
@@ -71,71 +64,51 @@ export default function OtpVerificationPage() {
     }
 
     setSubmitting(true);
-    const payload = authData.type === "phone" ? {phone: authData.value, otp} : {email: authData.value, otp};
+
+    // 🎯 ৪. ডাইনামিক পেলোড সরাসরি user অবজেক্ট থেকে জেনারেট হচ্ছে
+    const payload = user.email ? {email: user.email, phone: undefined, otp} : {phone: user.phone as string, email: undefined, otp};
 
     toast.promise(
       async () => {
-        const res = await fetch("http://localhost:5003/api/v1/auth/verify-otp", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify(payload),
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data?.message || data?.error || "OTP verification failed");
-        }
-
-        sessionStorage.removeItem("otp_auth_payload");
-
+        // .unwrap() ব্যবহারের ফলে এরর থাকলে অটোমেটিক ক্যাচ হবে
+        const data = await dispatch(verifyOtp(payload)).unwrap();
         return data;
       },
       {
         loading: "Verifying OTP code...",
-        success: () => {
+        success: (data) => {
           setSubmitting(false);
-          const path = roleBaseDashboards[user?.role as UserRole] || "/dashboard";
-
-          // সম্পূর্ণ পেজ ফ্রেশ স্টেটসহ রিলোড করার জন্য window.location.href ব্যবহার করাই বেস্ট
-          // window.location.href = path;
-          return "Verification Successful!";
+          let findLink = roleBaseDashboards[user?.role as UserRole];
+          router.push(findLink);
+          return data?.message || "Verification Successful!";
         },
         error: (err: any) => {
           setSubmitting(false);
-          setError(err?.message || "OTP verification failed");
-          return err?.message || "OTP verification failed";
+          const errMsg = typeof err === "string" ? err : err?.message || "OTP verification failed";
+          setError(errMsg);
+          return errMsg;
         },
       },
     );
   };
 
-  // ৩. ওটিপি রিসেন্ড হ্যান্ডলার (Sonner toast.promise সহ)
+  // 🎯 ৫. ওটিপি রিসেন্ড হ্যান্ডলার
   const handleResend = async () => {
     setError("");
 
-    if (!authData?.value) {
-      toast.error("Missing email or phone for OTP resend.");
+    if (!user) {
+      toast.error("Missing user session for OTP resend.");
       return;
     }
 
     setResendLoading(true);
-    const payload = authData.type === "phone" ? {phone: authData.value} : {email: authData.value};
+
+    const payload = user.email ? {email: user.email, phone: undefined} : {email: undefined, phone: user.phone as string};
 
     toast.promise(
       async () => {
-        const res = await fetch("/api/auth/resend-otp", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify(payload),
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data?.error || "Failed to resend OTP");
-        }
-        return data;
+        // এখানেও আপনি চাইলে রিজেকশন ক্যাচ করার জন্য .unwrap() ব্যবহার করতে পারেন
+        return await dispatch(sendOtp(payload)).unwrap();
       },
       {
         loading: "Resending OTP code...",
@@ -145,20 +118,22 @@ export default function OtpVerificationPage() {
         },
         error: (err: any) => {
           setResendLoading(false);
-          setError(err?.message || "Failed to resend OTP");
-          return err?.message || "Failed to resend OTP";
+          const errMsg = typeof err === "string" ? err : err?.message || "Failed to resend OTP";
+          setError(errMsg);
+          return errMsg;
         },
       },
     );
   };
 
-  if (!isMounted || !authData || loading) {
+  // মাউন্ট হওয়ার আগে অথবা ইউজার স্টেট লোড হওয়ার সময় ব্ল্যাঙ্ক স্ক্রিন আটকানো
+  if (loading || !user) {
     return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading session...</div>;
   }
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4">
-      <section className="w-full max-w-md rounded-2xl bg-card p-8 shadow-lg">
+      <section className="w-full max-w-md rounded-2xl bg-card p-8 shadow-lg border border-gray-100 dark:border-zinc-800">
         <h1 className="text-2xl font-semibold">OTP Verification</h1>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
           We sent a verification code to <strong>{maskedIdentifier}</strong>. Enter the code to continue.

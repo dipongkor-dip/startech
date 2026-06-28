@@ -12,7 +12,11 @@ export default function Navbar() {
   const {user, loading} = useAppSelector((s) => s.auth);
   const [query, setQuery] = useState("");
 
-  const findLink = roleBaseDashboards[user?.role as UserRole];
+  let findLink = roleBaseDashboards[user?.role as UserRole];
+
+  if (user && !user.isValidated && user.role !== UserRole.CUSTOMER) {
+    findLink = "/send-otp";
+  }
 
   return (
     <>
@@ -61,6 +65,7 @@ export default function Navbar() {
               <User size={20} className="text-chart-1" />
               <span className="flex flex-col gap-0">
                 <strong className="text-sm">Account</strong>
+
                 {(user?.email || user?.phone) && !loading ? (
                   <Link href={`${findLink}`} className="text-xs font-medium cursor-pointer hover:underline">
                     Dashboard

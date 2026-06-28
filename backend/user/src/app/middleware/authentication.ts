@@ -43,12 +43,12 @@ export const authentication = (...roles: string[]) => {
 
       const user = await prisma.user.findUniqueOrThrow({
         where: {id: decodedToken.userId},
-        select: {isValidated: true, role: true},
+        select: {role: true},
       });
 
       // ৫. রোল পারমিশন এবং অ্যাকাউন্ট ভ্যালিডেশন চেক লজিক
       const hasRequiredRole = roles.length === 0 || roles.includes(user.role);
-      if (!hasRequiredRole || !user.isValidated) {
+      if (!hasRequiredRole) {
         throw new ServerError(status.UNAUTHORIZED, "Unauthorized or Unvalidated User");
       }
 

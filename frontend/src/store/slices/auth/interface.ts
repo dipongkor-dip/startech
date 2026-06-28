@@ -67,13 +67,8 @@ export interface RegisterResponse {
 }
 
 export interface VerifyOtpCredentials {
-  email: string | null;
-  phone: string | null;
+  email: string | undefined;
+  phone: string | undefined;
   otp: string;
 }
 
-export interface VerifyOtpResponse {
-  isValidated: boolean;
-  accessToken: string;
-  refreshToken: string;
-}
