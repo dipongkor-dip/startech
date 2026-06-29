@@ -10,10 +10,10 @@ export const env = {
   databaseUrl: process.env.POST_DATABASE_URL,
 
   googleClientId: process.env.GOOGLE_CLIENT_ID,
-  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
 
-  facebookAppId: process.env.FACEBOOK_APP_ID,
-  facebookAppSecret: process.env.FACEBOOK_APP_SECRET,
+  facebookAppId: process.env.FACEBOOK_APP_ID as string,
+  facebookAppSecret: process.env.FACEBOOK_APP_SECRET as string,
 
   smsGatewayDomain: process.env.SMS_GATEWAY_DOMAIN,
 

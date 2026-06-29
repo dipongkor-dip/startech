@@ -1,168 +1,150 @@
-// import passport from 'passport';
-// import { Strategy as LocalStrategy } from 'passport-local';
-// import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
-// import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-// import { Strategy as FacebookStrategy } from 'passport-facebook';
-// import bcrypt from 'bcryptjs';
-// import { PrismaClient } from '@prisma/client';
+import passport from "passport";
+import {Strategy as GoogleStrategy} from "passport-google-oauth20";
+import {Strategy as FacebookStrategy} from "passport-facebook";
+import {PrismaClient, ProviderType, Status, UserRole} from "@prisma/client";
+import {env} from "../env";
 
-// const prisma = new PrismaClient();
-// const JWT_SECRET = process.env.JWT_SECRET || 'your-jwt-secret-change-in-production';
+const prisma = new PrismaClient();
 
-// // Local strategy - email or phone + password
-// passport.use(
-//   new LocalStrategy(
-//     {
-//       usernameField: 'login',
-//       passwordField: 'password',
-//       passReqToCallback: true,
-//     },
-//     async (req, login, password, done) => {
-//       try {
-//         const user = await prisma.user.findFirst({
-//           where: {
-//             AND: [
-//               { OR: [{ email: login }, { phone: login }] },
-//               { OR: [{ provider: null }, { provider: 'local' }] },
-//             ],
-//           },
-//           include: { profile: true },
-//         });
-//         if (!user || !user.password) {
-//           return done(null, false, { message: 'Invalid credentials' });
-//         }
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: env.googleClientId!,
+      clientSecret: env.googleClientSecret,
+      callbackURL: `${process.env.API_URL || "http://localhost:5003"}/api/v1/auth/google/callback`,
+    },
+    async (_accessToken, _refreshToken, profile, done) => {
+      try {
+        const email = profile.emails?.[0]?.value;
 
-//         if (!user.isValidated) {
-//           return done(null, false, { message: 'Please verify your OTP first' });
-//         }
-//         const valid = await bcrypt.compare(password, user.password);
-//         if (!valid) {
-//           return done(null, false, { message: 'Invalid credentials' });
-//         }
-//         return done(null, user);
-//       } catch (err) {
-//         return done(err as Error);
-//       }
-//     }
-//   )
-// );
+        if (!email) {
+          return done(new Error("Email not provided by Google OAuth"));
+        }
 
-// // JWT strategy
-// passport.use(
-//   new JwtStrategy(
-//     {
-//       jwtFromRequest: ExtractJwt.fromExtractors([
-//         ExtractJwt.fromAuthHeaderAsBearerToken(),
-//         (req: { cookies?: { accessToken?: string } }) => (req?.cookies?.accessToken ?? null) as string | null,
-//       ]),
-//       secretOrKey: JWT_SECRET,
-//     },
-//     async (payload, done) => {
-//       try {
-//         const user = await prisma.user.findUnique({
-//           where: { id: payload.sub },
-//           include: { profile: true },
-//         });
-//         if (user) return done(null, user);
-//         return done(null, false);
-//       } catch (err) {
-//         return done(err as Error);
-//       }
-//     }
-//   )
-// );
+        let user = await prisma.user.findUnique({where: {email}, select: {id: true, status: true, role: true}});
 
-// // Google strategy
-// if (process.env.GOOGLE_CLIENT_ID) {
-//   passport.use(
-//     new GoogleStrategy(
-//       {
-//         clientID: process.env.GOOGLE_CLIENT_ID!,
-//         clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-//         callbackURL: `${process.env.API_URL || 'http://localhost:3003'}/auth/google/callback`,
-//       },
-//       async (_accessToken, _refreshToken, profile, done) => {
-//         try {
-//           const email = profile.emails?.[0]?.value;
-//           let user = await prisma.user.findFirst({
-//             where: {
-//               OR: [
-//                 { providerId: profile.id, provider: 'google' },
-//                 ...(email ? [{ email }] : []),
-//               ],
-//             },
-//             include: { profile: true },
-//           });
-//           if (!user) {
-//             user = await prisma.user.create({
-//               data: {
-//                 email: email || undefined,
-//                 provider: 'google',
-//                 providerId: profile.id,
-//                 isValidated: true,
-//                 profile: {
-//                   create: {
-//                     name: profile.displayName || undefined,
-//                     avatar: profile.photos?.[0]?.value,
-//                   },
-//                 },
-//               },
-//               include: { profile: true },
-//             });
-//           }
-//           return done(null, user);
-//         } catch (err) {
-//           return done(err as Error);
-//         }
-//       }
-//     )
-//   );
-// }
+        if (user) {
+          if (user.status === Status.BANNED) {
+            return done(null, false);
+          }
+
+          const existingProvider = await prisma.authProvider.findUnique({
+            where: {
+              provider_providerId: {
+                provider: ProviderType.google,
+                providerId: profile.id,
+              },
+            },
+            select: {id: true},
+          });
+
+          if (!existingProvider)
+            await prisma.authProvider.create({
+              data: {
+                userId: user.id,
+                provider: ProviderType.google,
+                providerId: profile.id,
+              },
+            });
+        } else {
+          // ৩. যদি একদম নতুন ইউজার হয়, তবে প্রিজমার nested write/create ব্যবহার করে এক ট্রানজেকশনে ইউজার, প্রোভাইডার এবং কাস্টমার প্রোফাইল তৈরি করব
+          user = await prisma.user.create({
+            data: {
+              email: email,
+              isValidated: true,
+              role: UserRole.CUSTOMER,
+              authProvider: {
+                create: {
+                  provider: ProviderType.google,
+                  providerId: profile.id,
+                },
+              },
+              customer: {
+                create: {name: profile.displayName || "Google User", avatar: profile.photos?.[0]?.value || null},
+              },
+            },
+          });
+        }
+
+        return done(null, user);
+      } catch (err) {
+        return done(err as Error);
+      }
+    },
+  ),
+);
 
 // // Facebook strategy
-// if (process.env.FACEBOOK_APP_ID) {
-//   passport.use(
-//     new FacebookStrategy(
-//       {
-//         clientID: process.env.FACEBOOK_APP_ID!,
-//         clientSecret: process.env.FACEBOOK_APP_SECRET!,
-//         callbackURL: `${process.env.API_URL || 'http://localhost:3003'}/auth/facebook/callback`,
-//         profileFields: ['id', 'displayName', 'emails', 'photos'],
-//       },
-//       async (_accessToken, _refreshToken, profile, done) => {
-//         try {
-//           const email = profile.emails?.[0]?.value;
-//           let user = await prisma.user.findFirst({
-//             where: {
-//               OR: [
-//                 { providerId: profile.id, provider: 'facebook' },
-//                 ...(email ? [{ email }] : []),
-//               ],
-//             },
-//             include: { profile: true },
-//           });
-//           if (!user) {
-//             user = await prisma.user.create({
-//               data: {
-//                 email: email || undefined,
-//                 provider: 'facebook',
-//                 providerId: profile.id,
-//                 isValidated: true,
-//                 profile: {
-//                   create: {
-//                     name: profile.displayName || undefined,
-//                     avatar: profile.photos?.[0]?.value,
-//                   },
-//                 },
-//               },
-//               include: { profile: true },
-//             });
-//           }
-//           return done(null, user);
-//         } catch (err) {
-//           return done(err as Error);
-//         }
-//       }
-//     )
-//   );
-// }
+passport.use(
+  new FacebookStrategy(
+    {
+      clientID: env.facebookAppId!,
+      clientSecret: env.facebookAppSecret!,
+      callbackURL: `${process.env.API_URL || "http://localhost:5003"}/api/v1/auth/facebook/callback`,
+      profileFields: ["id", "displayName", "emails", "photos"],
+    },
+    async (_accessToken, _refreshToken, profile, done) => {
+      try {
+        const email = profile.emails?.[0]?.value;
+        // facebook account has email or phone
+
+        if (!email) {
+          return done(new Error("Email not provided by Google OAuth"));
+        }
+
+        let user = await prisma.user.findUnique({where: {email}, select: {id: true, status: true, role: true, isValidated: true}});
+
+        if (user) {
+          if (user.status === Status.BANNED) {
+            return done(null, false);
+          }
+          if (!user.isValidated) {
+            await prisma.user.update({where: {id: user.id}, data: {isValidated: true}});
+          }
+
+          const existingProvider = await prisma.authProvider.findUnique({
+            where: {
+              provider_providerId: {
+                provider: ProviderType.google,
+                providerId: profile.id,
+              },
+            },
+            select: {id: true},
+          });
+
+          if (!existingProvider)
+            await prisma.authProvider.create({
+              data: {
+                userId: user.id,
+                provider: ProviderType.google,
+                providerId: profile.id,
+              },
+            });
+        } else {
+          // ৩. যদি একদম নতুন ইউজার হয়, তবে প্রিজমার nested write/create ব্যবহার করে এক ট্রানজেকশনে ইউজার, প্রোভাইডার এবং কাস্টমার প্রোফাইল তৈরি করব
+          user = await prisma.user.create({
+            data: {
+              email: email,
+              isValidated: true,
+              role: UserRole.CUSTOMER,
+              authProvider: {
+                create: {
+                  provider: ProviderType.google,
+                  providerId: profile.id,
+                },
+              },
+              customer: {
+                create: {name: profile.displayName || "Facebook User", avatar: profile.photos?.[0]?.value || null},
+              },
+            },
+          });
+        }
+
+        return done(null, user);
+      } catch (err) {
+        console.error("Facebook OAuth Strategy Error:", err);
+        return done(err as Error);
+      }
+    },
+  ),
+);

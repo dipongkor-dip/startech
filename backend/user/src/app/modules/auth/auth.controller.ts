@@ -8,6 +8,8 @@ import {AuthenticatedRequest} from "../../middleware/authentication";
 import catchAsync from "../../utils/catchAsync";
 import {authService} from "./auth.service";
 import {addEmployeeDTO, changePasswordDTO, loginDTO, sendOtpDTO, verifyOtpDTO} from "./auth.validation";
+import {signAccessToken, signRefreshToken} from "../../helper/jwt";
+import {env} from "../../env";
 
 const login = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -23,15 +25,11 @@ const login = catchAsync(async (req: Request, res: Response, next: NextFunction)
 });
 
 const register = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const {email, phone} = req.body;
   try {
     const {accessToken, refreshToken} = await authService.register(req.body);
 
     res.cookie("accessToken", accessToken, {httpOnly: true, secure: true, sameSite: "none", maxAge: 7 * 24 * 60 * 60 * 1000}); // 7 days
     res.cookie("refreshToken", refreshToken, {httpOnly: true, secure: true, sameSite: "none", maxAge: 30 * 24 * 60 * 60 * 1000}); // 30 days
-    
-    const otpKey = email ? `otp:${email}` : `otp:${phone}`;
-    const rateLimitKey = email ? `rate:${email}` : `rate:${phone}`;
 
     res.status(status.CREATED).json({success: true, message: "Registration successful. Please verify your OTP."});
   } catch (error: any) {
@@ -151,24 +149,24 @@ const addEmployee = catchAsync(async (req: AuthenticatedRequest, res: Response, 
   }
 });
 
-const googleAuth = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const auth = await authService.googleAuth();
+const socialAuthCheck = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const user = req.user as {id: string};
+  console.log("✅ social user", user);
 
-    res.status(status.CREATED).json({success: true, message: "Login successfully", auth});
+  try {
+    const {accessToken, refreshToken} = await authService.socialAuthCheck(user.id);
+
+    let redirectTo = req.query.state ? (req.query.state as string) : "/";
+    if (redirectTo.startsWith("/")) {
+      redirectTo = redirectTo.slice(1);
+    }
+
+    res.cookie("accessToken", accessToken, {httpOnly: true, secure: true, sameSite: "none", maxAge: 7 * 24 * 60 * 60 * 1000}); // 7 days
+    res.cookie("refreshToken", refreshToken, {httpOnly: true, secure: true, sameSite: "none", maxAge: 30 * 24 * 60 * 60 * 1000}); // 30 days
+    res.redirect(`${env.corsOrigin}/${redirectTo}`);
   } catch (error) {
     next(error);
   }
 });
 
-const facebookAuth = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const auth = await authService.facebookAuth();
-
-    res.status(status.CREATED).json({success: true, message: "Login successfully", auth});
-  } catch (error) {
-    next(error);
-  }
-});
-
-export const authController = {login, register, verifyOtp, sendOtp, me, changePassword, addEmployee};
+export const authController = {login, register, verifyOtp, sendOtp, me, changePassword, addEmployee, socialAuthCheck};

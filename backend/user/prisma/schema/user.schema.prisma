@@ -24,11 +24,12 @@ model AuthProvider {
   userId   String
   provider ProviderType @default(local) // local | google | facebook
 
-  providerId String   @default(cuid()) // Unique ID from the provider (e.g., Google sub, Facebook id  )
+  providerId String // Unique ID from the provider (e.g., Google profile id, Facebook profile id)
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  @@unique([provider, providerId])
   @@map("auth_providers")
 }
 

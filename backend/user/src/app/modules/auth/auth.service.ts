@@ -67,14 +67,8 @@ const verifyOtp = async (payload: verifyOtpDTO) => {
 // POST /auth/login - email or phone + password (body: { login: "email@x.com"|"phone", password })
 const login = async (payload: loginDTO) => {
   const {email, phone, password} = payload;
-  console.log("object", email, phone, password);
 
   let user;
-
-  // user = await prisma.user.findFirstOrThrow({
-  //   where: {OR: [email ? {email} : {}, phone ? {phone} : {}]},
-  //   select: {password: true, id: true, role: true, isValidated: true, needPasswordReset: true},
-  // });
 
   if (email) {
     user = await prisma.user.findUnique({where: {email}, select: {password: true, id: true, role: true}});
@@ -85,12 +79,11 @@ const login = async (payload: loginDTO) => {
   }
 
   console.log(user);
-  
+
   if (!user || !user.password) throw new ServerError(status.NOT_FOUND, !user ? "None of your accounts were found." : "User does not have a password set");
-  
+
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) throw new ServerError(status.UNAUTHORIZED, "Invalid credentials");
-  console.log("isValid", isValid);
 
   const accessToken = signAccessToken(user.id, user.role);
   const refreshToken = signRefreshToken(user.id, user.role);
@@ -198,8 +191,12 @@ const addEmployee = async (payload: addEmployeeDTO, userRole: string) => {
   });
 };
 
-const googleAuth = async () => {};
+const socialAuthCheck = async (userId: string) => {
+  const user = await prisma.user.findUniqueOrThrow({where: {id: userId}, select: {id: true, role: true}});
 
-const facebookAuth = async () => {};
+  const accessToken = signAccessToken(user.id, user.role);
+  const refreshToken = signRefreshToken(user.id, user.role);
+  return {accessToken, refreshToken};
+};
 
-export const authService = {register, verifyOtp, sendOtpUserCheck, login, getMe, changePassword, addEmployee, googleAuth, facebookAuth};
+export const authService = {register, verifyOtp, sendOtpUserCheck, login, getMe, changePassword, addEmployee, socialAuthCheck};
