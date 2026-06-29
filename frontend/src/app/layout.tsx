@@ -24,7 +24,7 @@ export default function RootLayout({children}: Readonly<{children: React.ReactNo
           <StoreProvider>
             <AuthProvider>
               <TooltipProvider delay={0}>{children}</TooltipProvider>
-              <Toaster richColors position="top-center" />
+              <Toaster richColors position="top-right" />
             </AuthProvider>
           </StoreProvider>
         </ThemeProviderWrapper>

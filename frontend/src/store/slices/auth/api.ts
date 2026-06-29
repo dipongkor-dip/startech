@@ -13,12 +13,12 @@ export const axiosInstance = axios.create({
 
 export const fetchUserAPI = async (): Promise<User> => {
   const res = await axiosInstance.get("/auth/me");
-  return res.data?.data ?? res.data;
+  return res.data.data;
 };
 
 export const loginAPI = async (credentials: LoginCredentials): Promise<LoginResponse> => {
   const res = await axiosInstance.post("/auth/login", credentials);
-  return res.data?.data ?? res.data;
+  return res.data;
 };
 
 export const registerAPI = async (userData: RegisterData): Promise<RegisterResponse> => {
@@ -32,18 +32,19 @@ export const registerAPI = async (userData: RegisterData): Promise<RegisterRespo
   return res.data;
 };
 
-export const verifyOtpAPI = async (credentials: VerifyOtpCredentials): Promise<{status: boolean; message: string}> => {
+export const verifyOtpAPI = async (credentials: VerifyOtpCredentials): Promise<{success: boolean; message: string}> => {
   const res = await axiosInstance.post("/auth/verify-otp", credentials);
   return res.data;
 };
 
-export const sendOTP = async (credentials: {email: string | undefined; phone: string | undefined}): Promise<{status: boolean; message: string}> => {
+export const sendOTP = async (credentials: {email: string | undefined; phone: string | undefined}): Promise<{success: boolean; message: string}> => {
   const res = await axiosInstance.post("/auth/send-otp", credentials);
   return res.data;
 };
 
-export const logoutAPI = async (): Promise<void> => {
-  await axiosInstance.post("/auth/logout");
+export const logoutAPI = async (): Promise<{success: boolean; message: string}> => {
+  const res = await axiosInstance.post("/auth/logout");
+  return res.data;
 };
 
 // Redux thunks
@@ -88,7 +89,7 @@ export const register = createAsyncThunk<RegisterResponse, RegisterData, {reject
   }
 });
 
-export const sendOtp = createAsyncThunk<{status: boolean; message: string}, {email: string | undefined; phone: string | undefined}, {rejectValue: string}>(
+export const sendOtp = createAsyncThunk<{success: boolean; message: string}, {email: string | undefined; phone: string | undefined}, {rejectValue: string}>(
   "auth/send-otp",
   async (credentials, {rejectWithValue}) => {
     try {
@@ -99,7 +100,7 @@ export const sendOtp = createAsyncThunk<{status: boolean; message: string}, {ema
   },
 );
 
-export const verifyOtp = createAsyncThunk<{status: boolean; message: string}, VerifyOtpCredentials, {rejectValue: string}>(
+export const verifyOtp = createAsyncThunk<{success: boolean; message: string}, VerifyOtpCredentials, {rejectValue: string}>(
   "auth/verify-otp",
   async (credentials, {rejectWithValue, dispatch}) => {
     // 🎯 dispatch যুক্ত করা হলো
@@ -117,11 +118,18 @@ export const verifyOtp = createAsyncThunk<{status: boolean; message: string}, Ve
   },
 );
 
-export const logout = createAsyncThunk<void, void, {rejectValue: string}>("auth/logout", async (_, {rejectWithValue}) => {
+// ২. ক্রিয়েট এসিনক থাঙ্ক (Corrected Types)
+export const logout = createAsyncThunk<
+  {
+    success: boolean;
+    message: string;
+  },
+  void,
+  {rejectValue: string}
+>("auth/logout", async (_, {rejectWithValue}) => {
   try {
-    await logoutAPI();
-
-    
+    const response = await logoutAPI();
+    return response; // এটি LogoutResponse টাইপ ম্যাচ করবে
   } catch (error) {
     return rejectWithValue(error instanceof Error ? error.message : "Logout failed");
   }

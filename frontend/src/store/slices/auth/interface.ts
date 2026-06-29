@@ -71,4 +71,3 @@ export interface VerifyOtpCredentials {
   phone: string | undefined;
   otp: string;
 }
-

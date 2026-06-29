@@ -1,127 +1,126 @@
 "use client";
 
 import Link from "next/link";
+import {PhoneCall, MapPin, Facebook, Youtube, Instagram, MessageSquare} from "lucide-react";
 
 export function RootFooter() {
+  // ক্যাটাগরি অনুযায়ী লিংকগুলোর ডাটা স্ট্রাকচার
+  const footerLinks = [
+    {name: "Affiliate Program", path: "#"},
+    {name: "Online Delivery", path: "#"},
+    {name: "Refund and Return Policy", path: "#"},
+    {name: "Blog", path: "#"},
+    {name: "EMI Terms", path: "#"},
+    {name: "Privacy Policy", path: "#"},
+    {name: "Star Point Policy", path: "#"},
+    {name: "Contact Us", path: "#"},
+    {name: "About Us", path: "#"},
+    {name: "Terms and Conditions", path: "#"},
+    {name: "Career", path: "#"},
+    {name: "Brands", path: "#"},
+  ];
+
   return (
-    <footer className="bg-gray-900 text-gray-200 py-10">
-      <div className="max-w-7xl mx-auto">
-        <div className="w-full flex justify-between items-start gap-10 pb-10">
-          <div className="min-w-64 space-y-5 px-2">
-            <div className="border rounded-2xl px-5 py-1 flex gap-5 items-center">
-              <span className="border-r-2 pr-2">ICON</span>
-              <span className="flex flex-col">
-                <p className="inline">9 AM - 8 PM</p>
-                <p className="inline">12345</p>
-              </span>
-            </div>
-            <div className="border rounded-2xl px-5 py-1 flex items-center gap-5">
-              <span className="border-r-2 pr-2">ICON</span>
-              <span className="flex flex-col">
-                <p>Store Locator</p>
-                <strong className="inline">Find Our Stores</strong>
-              </span>
+    <footer className="bg-slate-950 text-slate-300 border-t border-slate-900 py-12 px-4 sm:px-6 md:px-8">
+      <div className="max-w-7xl mx-auto space-y-12">
+        {/* 🔝 টপ সেকশন: রেসপনসিভ গ্রিড লেআউট */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-10">
+          {/* ১. কন্টাক্ট ও সাপোর্ট এরিয়া */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold tracking-wider uppercase text-white">Support</h3>
+            <div className="space-y-3">
+              {/* ফোন কল বক্স */}
+              <div className="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-slate-700 transition-colors">
+                <div className="p-2 bg-primary/10 rounded-lg text-orange-500">
+                  <PhoneCall size={20} />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400">9 AM - 8 PM</p>
+                  <p className="text-lg font-bold text-white tracking-wide">12345</p>
+                </div>
+              </div>
+
+              {/* স্টোর লোকেটর বক্স */}
+              <div className="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-slate-700 transition-colors">
+                <div className="p-2 bg-primary/10 rounded-lg text-orange-500">
+                  <MapPin size={20} />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400">Store Locator</p>
+                  <strong className="text-sm font-semibold text-white">Find Our Stores</strong>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div>
-            <h3 className="text-lg font-semibold mb-4">About Us</h3>
-            <ul className="space-y-2 grid grid-cols-3 gap-x-6 text-sm">
-              <li>
-                <a href="#" className="hover:text-blue-400">
-                  Affiliate Program
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-400">
-                  Online Delivery
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-400">
-                  Refund and Return Policy
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-400">
-                  Blog
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-400">
-                  EMI Terms
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-400">
-                  Privacy Policy
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-400">
-                  Star Point Policy
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-400">
-                  Contact Us
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-400">
-                  About Us
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-400">
-                  Terms and Conditions
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-400">
-                  Career
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-400">
-                  Brands
-                </a>
-              </li>
+          {/* ২. অ্যাবাউট ও পলিসি লিংকস (ডেস্কটপে ২ কলাম জায়গা নিবে) */}
+          <div className="md:col-span-2">
+            <h3 className="text-sm font-semibold tracking-wider uppercase text-white mb-4">About Us</h3>
+            <ul className="grid grid-cols-2 sm:grid-cols-3 gap-y-2.5 gap-x-4 text-sm">
+              {footerLinks.map((link, index) => (
+                <li key={index}>
+                  <Link href={link.path} className="text-slate-400 hover:text-orange-500 transition-colors duration-200 block truncate">
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Stay Connected</h3>
-            <p className="font-bold">Star Tech Ltd</p>
-            <p className="text-sm mt-2">Head Office: Dinajpur</p>
-            <p className="text-sm">
-              Email:{" "}
-              <a href="mailto:dipongkorroy000@gmail.com" className="text-blue-400">
-                dipongkorroy000@gmail.com
-              </a>
-            </p>
+          {/* ৩. হেড অফিস ও কানেক্টিভিটি */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold tracking-wider uppercase text-white">Stay Connected</h3>
+            <div className="text-sm space-y-1 text-slate-400">
+              <p className="font-bold text-white text-base">Star Tech Ltd</p>
+              <p className="pt-1">Head Office: Dinajpur</p>
+              <p>
+                Email:{" "}
+                <a href="mailto:dipongkorroy000@gmail.com" className="text-orange-500 hover:underline">
+                  dipongkorroy000@gmail.com
+                </a>
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="border-y-2 flex justify-between items-center py-1">
-          <div className="text-sm">
-            © 2026 Star Tech Ltd | All rights reserved <br />
-            Powered By: Star Tech
+        {/* 📜 বটম সেকশন: কপিরাইট ও সোশ্যাল আইকন */}
+        <div className="pt-8 border-t border-slate-900 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+          <div className="text-xs text-slate-500 leading-relaxed">
+            © 2026 <span className="text-slate-400 font-medium">Star Tech Ltd</span> | All rights reserved
+            <br />
+            <span className="text-slate-600">Powered By: Star Tech</span>
           </div>
 
-          <div className="flex space-x-4">
-            <Link href="#" className="hover:text-green-400">
-              WhatsApp
+          {/* সোশ্যাল মিডিয়া আইকন লিংক */}
+          <div className="flex items-center gap-3">
+            <Link
+              href="#"
+              aria-label="WhatsApp"
+              className="p-2 rounded-full bg-slate-900 text-slate-400 hover:bg-emerald-500/10 hover:text-emerald-500 border border-slate-800 transition-all"
+            >
+              <MessageSquare size={18} />
             </Link>
-            <Link href="#" className="hover:text-blue-500">
-              Facebook
+            <Link
+              href="#"
+              aria-label="Facebook"
+              className="p-2 rounded-full bg-slate-900 text-slate-400 hover:bg-blue-500/10 hover:text-blue-500 border border-slate-800 transition-all"
+            >
+              <Facebook size={18} />
             </Link>
-            <Link href="#" className="hover:text-red-500">
-              YouTube
+            <Link
+              href="#"
+              aria-label="YouTube"
+              className="p-2 rounded-full bg-slate-900 text-slate-400 hover:bg-red-500/10 hover:text-red-500 border border-slate-800 transition-all"
+            >
+              <Youtube size={18} />
             </Link>
-            <a href="#" className="hover:text-pink-500">
-              Instagram
-            </a>
+            <Link
+              href="#"
+              aria-label="Instagram"
+              className="p-2 rounded-full bg-slate-900 text-slate-400 hover:bg-pink-500/10 hover:text-pink-500 border border-slate-800 transition-all"
+            >
+              <Instagram size={18} />
+            </Link>
           </div>
         </div>
       </div>

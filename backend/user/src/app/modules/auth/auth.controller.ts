@@ -8,7 +8,6 @@ import {AuthenticatedRequest} from "../../middleware/authentication";
 import catchAsync from "../../utils/catchAsync";
 import {authService} from "./auth.service";
 import {addEmployeeDTO, changePasswordDTO, loginDTO, sendOtpDTO, verifyOtpDTO} from "./auth.validation";
-import {signAccessToken, signRefreshToken} from "../../helper/jwt";
 import {env} from "../../env";
 
 const login = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -169,4 +168,16 @@ const socialAuthCheck = catchAsync(async (req: Request, res: Response, next: Nex
   }
 });
 
-export const authController = {login, register, verifyOtp, sendOtp, me, changePassword, addEmployee, socialAuthCheck};
+const logout = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    res.clearCookie("accessToken", {httpOnly: true, secure: true, sameSite: "none"});
+
+    res.clearCookie("refreshToken", {httpOnly: true, secure: true, sameSite: "none"});
+
+    return res.status(200).json({success: true, message: "Logged out successfully."});
+  } catch (error) {
+    next(error);
+  }
+});
+
+export const authController = {login, register, verifyOtp, sendOtp, me, changePassword, addEmployee, socialAuthCheck, logout};

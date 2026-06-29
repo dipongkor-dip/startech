@@ -13,6 +13,7 @@ router.post("/register", validateSchema(registerSchema), authController.register
 router.post("/verify-otp", validateSchema(verifyOtpSchema), authController.verifyOtp);
 router.post("/send-otp", validateSchema(sendOtpSchema), authController.sendOtp);
 router.post("/login", validateSchema(loginSchema), authController.login);
+router.post("/logout", authController.logout);
 router.post(
   "/change-password",
   validateSchema(changePasswordSchema),
