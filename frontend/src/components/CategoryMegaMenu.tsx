@@ -2,13 +2,12 @@
 
 import * as React from "react";
 import Link from "next/link";
-import {ChevronDownIcon, ChevronRightIcon} from "lucide-react";
+import {ChevronRightIcon} from "lucide-react";
 import {cn} from "@/lib/utils";
-import {SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel} from "@/components/ui/sidebar";
-import {Sheet, SheetContent} from "@/components/ui/sheet";
 import {Button} from "@base-ui/react";
 import {useRouter} from "next/navigation";
 import {NavCategory} from "@/app/(software)/(products)/layout";
+import {useAppSelector} from "@/store/hooks";
 
 function SubFlyout({
   categories,
@@ -43,78 +42,13 @@ function SubFlyout({
   );
 }
 
-function renderMobileItems(categories: NavCategory[], level: number, onSelect: (categoryId: string) => void, onClose: () => void) {
-  return (
-    <div className={cn(level === 0 ? "space-y-1" : "ml-4 space-y-1")}>
-      {categories.map((item, index) => (
-        <div key={`${item.slug || item.name}-${level}-${index}`}>
-          <Link
-            href={`/${item.slug}`}
-            onClick={() => {
-              onSelect(item.slug);
-              onClose();
-            }}
-            className={cn(
-              "block w-full text-left px-2 py-1 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded",
-              level === 0 ? "text-sm" : "text-xs",
-            )}
-          >
-            {item.name}
-          </Link>
-          {item.child && item.child.length > 0 ? renderMobileItems(item.child, level + 1, onSelect, onClose) : null}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-interface CategoryMegaMenuProps {
-  categories: NavCategory[];
-  loading?: boolean;
-  mobileSidebarOpen?: boolean;
-  onMobileSidebarOpenChange?: (open: boolean) => void;
-}
-
-function useLoadingSuspense(loading: boolean) {
-  const promiseRef = React.useRef<Promise<void> | null>(null);
-  const resolveRef = React.useRef<(() => void) | null>(null);
-
-  if (loading && !promiseRef.current) {
-    promiseRef.current = new Promise((resolve) => {
-      resolveRef.current = resolve;
-    });
-  }
-
-  React.useEffect(() => {
-    if (!loading && resolveRef.current) {
-      resolveRef.current();
-      promiseRef.current = null;
-      resolveRef.current = null;
-    }
-  }, [loading]);
-
-  if (loading && promiseRef.current) {
-    throw promiseRef.current;
-  }
-}
-
-export function CategoryMegaMenu({categories, loading = false, mobileSidebarOpen: mobileSidebarOpenProp, onMobileSidebarOpenChange}: CategoryMegaMenuProps) {
-  useLoadingSuspense(loading);
+export function CategoryMegaMenu() {
   const router = useRouter();
+
+  const {categories} = useAppSelector((s) => s.categories);
+
   const [openCategory, setOpenCategory] = React.useState<string | null>(null);
   const [openSubPath, setOpenSubPath] = React.useState<string[]>([]);
-  const [openMobileCategory, setOpenMobileCategory] = React.useState<string | null>(null);
-  const [mobileSidebarOpenState, setMobileSidebarOpenState] = React.useState(false);
-  const mobileSidebarOpen = mobileSidebarOpenProp ?? mobileSidebarOpenState;
-  const setMobileSidebarOpen = React.useCallback(
-    (open: boolean) => {
-      onMobileSidebarOpenChange?.(open);
-      if (mobileSidebarOpenProp === undefined) {
-        setMobileSidebarOpenState(open);
-      }
-    },
-    [onMobileSidebarOpenChange, mobileSidebarOpenProp],
-  );
 
   const setPath = (category: string) => {
     router.push(`/${category}`);
@@ -135,46 +69,6 @@ export function CategoryMegaMenu({categories, loading = false, mobileSidebarOpen
 
   return (
     <nav aria-label="categories" className="bg-card">
-      <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
-        <SheetContent side="left" className="w-[18rem] border-r bg-sidebar p-0 text-sidebar-foreground sm:max-w-none">
-          <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-sm font-semibold text-sidebar-foreground">Categories</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <div className="space-y-0">
-                  {categories.map((category) => (
-                    <div key={category.name} className="border-b border-sidebar-border last:border-b-0">
-                      <button
-                        type="button"
-                        onClick={() => setOpenMobileCategory((prev) => (prev === category.name ? null : category.name))}
-                        className="flex w-full child-center justify-between gap-2 px-3 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-                      >
-                        <span>{category.name}</span>
-                        <ChevronDownIcon className={cn("size-4 transition-transform", openMobileCategory === category.name ? "rotate-180" : "")} />
-                      </button>
-                      {openMobileCategory === category.name ? (
-                        <div className="ml-4 space-y-1">
-                          {category.child
-                            ? renderMobileItems(
-                                category.child,
-                                0,
-                                (slug) => {
-                                  setPath(slug);
-                                  setMobileSidebarOpen(false);
-                                },
-                                () => setMobileSidebarOpen(false),
-                              )
-                            : null}
-                        </div>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
-        </SheetContent>
-      </Sheet>
       <div className="mx-auto max-w-7xl">
         <ul className="hidden flex-wrap child-center xl:flex">
           {categories.map((category) => (
@@ -238,22 +132,6 @@ export function CategoryMegaMenu({categories, loading = false, mobileSidebarOpen
                   ) : null}
                 </div>
               </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </nav>
-  );
-}
-
-export function CategoryMegaMenuSkeleton() {
-  return (
-    <nav aria-label="categories" className="bg-card">
-      <div className="mx-auto max-w-7xl">
-        <ul className="hidden flex-wrap child-center xl:flex">
-          {Array.from({length: 6}).map((_, index) => (
-            <li key={index} className="relative py-2">
-              <div className="h-8 w-24 rounded bg-slate-600/20 animate-pulse" />
             </li>
           ))}
         </ul>

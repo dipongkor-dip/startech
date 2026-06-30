@@ -21,7 +21,7 @@ export function RootFooter() {
   ];
 
   return (
-    <footer className="bg-slate-950 text-slate-300 border-t border-slate-900 py-12 px-4 sm:px-6 md:px-8">
+    <footer className="bg-slate-950 text-slate-300 border-t border-slate-900 py-16 px-4 sm:px-8 md:px-10">
       <div className="max-w-7xl mx-auto space-y-12">
         {/* 🔝 টপ সেকশন: রেসপনসিভ গ্রিড লেআউট */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-10">

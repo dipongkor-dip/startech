@@ -1,4 +1,5 @@
 import {RootFooter} from "@/components/footer/RootFooter";
+import MobileBottomNav from "@/components/home/MobileBottomNav";
 import Navbar from "@/components/soft/Navbar";
 
 export default function layout({children}: Readonly<{children: React.ReactNode}>) {
@@ -7,6 +8,7 @@ export default function layout({children}: Readonly<{children: React.ReactNode}>
       <Navbar></Navbar>
       {children}
       <RootFooter />
+      <MobileBottomNav />
     </>
   );
 }

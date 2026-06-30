@@ -1,10 +1,10 @@
 "use client";
 
-import { HeroCarousel } from "@/components/home/HeroCarousel";
-import { ScrollingText } from "@/components/home/ScrollingText";
-import { ServicesShowcase } from "@/components/home/ServicesShowcase";
-import { CategoriesShowcase } from "@/components/home/CategoriesShowcase";
-import { FeaturedProducts } from "@/components/home/FeaturedProducts";
+import {HeroCarousel} from "@/components/home/HeroCarousel";
+import {ScrollingText} from "@/components/home/ScrollingText";
+import {ServicesShowcase} from "@/components/home/ServicesShowcase";
+import {CategoriesShowcase} from "@/components/home/CategoriesShowcase";
+import {FeaturedProducts} from "@/components/home/FeaturedProducts";
 
 export default function Home() {
   return (
@@ -16,7 +16,7 @@ export default function Home() {
 
       {/* Scrolling Text */}
       <section>
-        {/* <ScrollingText /> */}
+        <ScrollingText />
       </section>
 
       {/* Services Showcase */}
