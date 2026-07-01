@@ -3,7 +3,7 @@
 import * as React from "react";
 
 import {SearchForm} from "@/components/search-form";
-import {VersionSwitcher} from "@/components/version-switcher";
+import {VersionSwitcher} from "@/components/services-switcher";
 import {Collapsible, CollapsibleContent, CollapsibleTrigger} from "@/components/ui/collapsible";
 import {
   Sidebar,
@@ -19,94 +19,157 @@ import {
 } from "@/components/ui/sidebar";
 import {ChevronRightIcon} from "lucide-react";
 
-// This is sample data.
-const data = {
-  versions: ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"],
-  navMain: [
+const services = ["Home", "Chat", "Users", "Products", "Orders", "Deliveries", "Payments"];
+
+const serviceNav: Record<string, {title: string; url: string; items: {title: string; url: string; isActive?: boolean}[]}[]> = {
+  Home: [
+    {
+      title: "Home Overview",
+      url: "#",
+      items: [
+        {title: "Dashboard", url: "#", isActive: true},
+        {title: "Activity", url: "#"},
+        {title: "Announcements", url: "#"},
+      ],
+    },
     {
       title: "Getting Started",
       url: "#",
       items: [
-        {
-          title: "Installation",
-          url: "#",
-        },
-        {
-          title: "Project Structure",
-          url: "#",
-        },
+        {title: "Installation", url: "#"},
+        {title: "Project Structure", url: "#"},
+      ],
+    },
+  ],
+  Chat: [
+    {
+      title: "Conversations",
+      url: "#",
+      items: [
+        {title: "Recent Messages", url: "#", isActive: true},
+        {title: "Channels", url: "#"},
+        {title: "Groups", url: "#"},
       ],
     },
     {
-      title: "Build Your Application",
+      title: "Settings",
       url: "#",
       items: [
-        {
-          title: "Routing",
-          url: "#",
-        },
-        {
-          title: "Data Fetching",
-          url: "#",
-          isActive: true,
-        },
-        {
-          title: "Rendering",
-          url: "#",
-        },
-        {
-          title: "Caching",
-          url: "#",
-        },
+        {title: "Notifications", url: "#"},
+        {title: "Privacy", url: "#"},
+      ],
+    },
+  ],
+  Users: [
+    {
+      title: "User Management",
+      url: "#",
+      items: [
+        {title: "All Users", url: "#", isActive: true},
+        {title: "Roles", url: "#"},
+        {title: "Permissions", url: "#"},
       ],
     },
     {
-      title: "API Reference",
+      title: "Profiles",
       url: "#",
       items: [
-        {
-          title: "Components",
-          url: "#",
-        },
-        {
-          title: "File Conventions",
-          url: "#",
-        },
+        {title: "Active", url: "#"},
+        {title: "Invited", url: "#"},
+      ],
+    },
+  ],
+  Products: [
+    {
+      title: "Catalog",
+      url: "#",
+      items: [
+        {title: "Products", url: "#", isActive: true},
+        {title: "Categories", url: "#"},
+        {title: "Inventory", url: "#"},
       ],
     },
     {
-      title: "Architecture",
+      title: "Pricing",
       url: "#",
       items: [
-        {
-          title: "Accessibility",
-          url: "#",
-        },
+        {title: "Discounts", url: "#"},
+        {title: "Offers", url: "#"},
+      ],
+    },
+  ],
+  Orders: [
+    {
+      title: "Orders",
+      url: "#",
+      items: [
+        {title: "All Orders", url: "#", isActive: true},
+        {title: "Pending", url: "#"},
+        {title: "Completed", url: "#"},
       ],
     },
     {
-      title: "Community",
+      title: "Returns",
       url: "#",
       items: [
-        {
-          title: "Contribution Guide",
-          url: "#",
-        },
+        {title: "Open Returns", url: "#"},
+        {title: "Refunds", url: "#"},
+      ],
+    },
+  ],
+  Deliveries: [
+    {
+      title: "Shipments",
+      url: "#",
+      items: [
+        {title: "Scheduled", url: "#", isActive: true},
+        {title: "In Transit", url: "#"},
+        {title: "Delivered", url: "#"},
+      ],
+    },
+    {
+      title: "Routes",
+      url: "#",
+      items: [
+        {title: "Route Planner", url: "#"},
+        {title: "Drivers", url: "#"},
+      ],
+    },
+  ],
+  Payments: [
+    {
+      title: "Billing",
+      url: "#",
+      items: [
+        {title: "Invoices", url: "#", isActive: true},
+        {title: "Transactions", url: "#"},
+        {title: "Payouts", url: "#"},
+      ],
+    },
+    {
+      title: "Settings",
+      url: "#",
+      items: [
+        {title: "Payment Methods", url: "#"},
+        {title: "Tax Settings", url: "#"},
       ],
     },
   ],
 };
 
 export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
+  const [selectedService, setSelectedService] = React.useState(services[0]);
+  const navMain = serviceNav[selectedService] ?? serviceNav.Home;
+
   return (
-    <Sidebar {...props} className="w-fit">
+    <Sidebar {...props}>
       <SidebarHeader>
-        <VersionSwitcher versions={data.versions} defaultVersion={data.versions[0]} />
+        <VersionSwitcher services={services} selectedService={selectedService} onServiceChange={setSelectedService} />
         <SearchForm />
       </SidebarHeader>
       <SidebarContent className="gap-0">
         {/* We create a collapsible SidebarGroup for each parent. */}
-        {data.navMain.map((item) => (
+        {navMain.map((item) => (
           <Collapsible key={item.title} title={item.title} defaultOpen className="group/collapsible">
             <SidebarGroup>
               <SidebarGroupLabel

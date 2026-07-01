@@ -9,7 +9,7 @@ import {UserRole} from "@/store/slices/auth/interface";
 export default function MobileBottomNav() {
   const {user, loading} = useAppSelector((s) => s.auth);
 
-  let findLink = roleBaseDashboards[user?.role as UserRole];
+  let findLink = user ? roleBaseDashboards[user.role as UserRole] : "/auth";
 
   if (user && !user.isValidated && user.role !== UserRole.CUSTOMER) {
     findLink = "/send-otp";
