@@ -2,13 +2,6 @@
 
 import React from "react";
 import {CategoryMegaMenu} from "@/components/CategoryMegaMenu";
-import {useAppSelector} from "@/store/hooks";
-
-export interface NavCategory {
-  slug: string;
-  name: string;
-  child?: NavCategory[];
-}
 
 export default function Layout({children}: Readonly<{children: React.ReactNode}>) {
   return (

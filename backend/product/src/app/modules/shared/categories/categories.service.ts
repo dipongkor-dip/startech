@@ -4,31 +4,26 @@ import {CategoryInt} from "./categories.interface";
 import ServerError from "../../../handler/ServerError";
 import {StatusCodes} from "http-status-codes";
 
-type CategoryTree = {
-  name: string;
-  child: CategoryTree[];
-};
-
 const createCategory = async (data: Partial<CategoryInt>) => {
   const res = await category.create(data);
   const c = res.toObject() as unknown as Record<string, unknown>;
   return c;
 };
 
-const getAllCategories = async (parentId: string | null = null): Promise<CategoryTree[]> => {
+const getAllCategories = async (): Promise<CategoryInt[]> => {
   const nodes = await category
-    .find({
-      parentId: parentId ? new mongoose.Types.ObjectId(parentId) : null,
-    })
-    .select("id name slug createdAt autoNumber")
-    .sort({autoNumber: 1, createdAt: 1}) // firstly sort by autoNumber, is autoNumber null then sort by createdAt
+    .find()
+    .select("_id name slug description parentId isActive autoNumber createdAt updatedAt")
+    .sort({autoNumber: 1, createdAt: 1}) // sort by autoNumber, if null then sort by createdAt
     .exec();
-  return Promise.all(
-    nodes.map(async (node) => {
-      const children = await getAllCategories(node._id.toString());
-      return {id: node.id, slug: node.slug, name: node.name, isActive: node.isActive, autoNumber: node.autoNumber, child: children};
-    }),
-  );
+  return nodes.map((node) => {
+    const obj = node.toObject();
+    return {
+      ...obj,
+      id: node._id.toString(),
+      parentId: obj.parentId ? (obj.parentId as any).toString() : null,
+    } as unknown as CategoryInt;
+  });
 };
 
 const updateCategory = async (id: mongoose.Types.ObjectId, data: typeof updateCategorySchema) => {

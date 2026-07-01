@@ -1,14 +1,15 @@
 import mongoose from "mongoose";
 
 export interface CategoryInt {
+  id?: string;
   name: string;
   slug: string;
   title?: string;
   description?: string;
-  parentId?: mongoose.Types.ObjectId | null;
+  parentId?: mongoose.Types.ObjectId | string | null;
   children?: mongoose.Types.ObjectId[];
-  autoNumber?: number;
+  autoNumber?: number | null;
   isActive?: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

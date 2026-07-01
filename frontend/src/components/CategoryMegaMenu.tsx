@@ -2,100 +2,57 @@
 
 import * as React from "react";
 import Link from "next/link";
-import {ChevronRightIcon} from "lucide-react";
 import {cn} from "@/lib/utils";
 import {Button} from "@base-ui/react";
 import {useRouter} from "next/navigation";
-import {NavCategory} from "@/app/(software)/(products)/layout";
 import {useAppSelector} from "@/store/hooks";
-
-function SubFlyout({
-  categories,
-  parentLabel,
-  isOpen,
-  onLinkClick,
-  direction = "right",
-}: {
-  categories: NavCategory[];
-  parentLabel: string;
-  isOpen: boolean;
-  onLinkClick: () => void;
-  direction?: "left" | "right";
-}) {
-  return (
-    <div
-      className={cn(
-        "absolute top-0 z-50 min-w-[10rem] shadow-sm transition-all duration-150 bg-background",
-        direction === "right" ? "left-full" : "right-full",
-        isOpen ? "visible opacity-100" : "invisible opacity-0",
-        "border bg-popover py-1 text-popover-foreground",
-      )}
-      role="menu"
-      aria-label={`${parentLabel} subcategories`}
-    >
-      {categories.map((s) => (
-        <Link key={s.slug} href={`/${s.slug}`} onClick={onLinkClick} className="block px-3 py-1 text-sm transition-colors hover:bg-chart-1 hover:text-white">
-          {s.name}
-        </Link>
-      ))}
-    </div>
-  );
-}
+import {selectFlatCategories} from "@/store/slices/categories/selectors";
+import {getChildCategoriesByParentId} from "@/lib/category-utils";
 
 export function CategoryMegaMenu() {
   const router = useRouter();
+  const flatCategories = useAppSelector(selectFlatCategories);
+  console.log("object", flatCategories);
 
-  const {categories} = useAppSelector((s) => s.categories);
+  // Get only root categories (no parent)
+  const rootCategories = React.useMemo(() => flatCategories.filter((cat) => !cat.parentId), [flatCategories]);
 
-  const [openCategory, setOpenCategory] = React.useState<string | null>(null);
-  const [openSubPath, setOpenSubPath] = React.useState<string[]>([]);
+  const [openCategoryId, setOpenCategoryId] = React.useState<string | null>(null);
 
-  const setPath = (category: string) => {
-    router.push(`/${category}`);
+  // Get child categories for hovered category
+  const hoveredChildCategories = React.useMemo(() => {
+    if (!openCategoryId) return [];
+    return getChildCategoriesByParentId(flatCategories, openCategoryId);
+  }, [openCategoryId, flatCategories]);
+
+  const handleCategoryClick = (slug: string) => {
+    router.push(`/${slug}`);
+    setOpenCategoryId(null);
   };
-
-  const handleHoverSub = React.useCallback((depth: number, id: string) => {
-    setOpenSubPath((prev) => [...prev.slice(0, depth), id]);
-  }, []);
-
-  const handleCloseSubPath = React.useCallback((depth: number) => {
-    setOpenSubPath((prev) => prev.slice(0, depth));
-  }, []);
-
-  const handleCloseAll = React.useCallback(() => {
-    setOpenCategory(null);
-    setOpenSubPath([]);
-  }, []);
 
   return (
     <nav aria-label="categories" className="bg-card">
       <div className="mx-auto max-w-7xl">
         <ul className="hidden flex-wrap child-center xl:flex">
-          {categories.map((category) => (
-            <li key={category.name} className="relative py-2" onMouseEnter={() => setOpenCategory(category.name)} onMouseLeave={handleCloseAll}>
+          {rootCategories.map((category) => (
+            <li key={category.id} className="relative py-2" onMouseEnter={() => setOpenCategoryId(category.id)} onMouseLeave={() => setOpenCategoryId(null)}>
               <Button
-                onClick={() => {
-                  setOpenCategory(category.name);
-
-                  setPath(category.slug);
-                  handleCloseAll();
-                }}
-                className="inline-flex child-center pr-3 py-2 text-sm font-medium text-foreground transition-colors hover:text-chart-1 group-hover/cat:text-chart-1"
+                onClick={() => handleCategoryClick(category.slug)}
+                className="inline-flex child-center pr-3 py-2 text-sm font-medium text-foreground transition-colors hover:text-chart-1"
               >
                 {category.name}
               </Button>
 
-              {/* pt-2 = hover bridge between trigger and panel */}
-              <div
-                className={cn(
-                  "absolute left-0 top-full z-40 min-w-[14rem] transition-opacity duration-150 border border-t-2 border-t-chart-1",
-                  openCategory === category.name ? "visible opacity-100" : "invisible opacity-0",
-                )}
-              >
-                <div className="border shadow-lg">
-                  {category.child ? (
+              {/* Dropdown Panel */}
+              {hoveredChildCategories.length > 0 && openCategoryId === category.id && (
+                <div
+                  className={cn(
+                    "absolute left-0 top-full z-40 min-w-[14rem] mt-0 transition-opacity duration-150 border border-t-2 border-t-chart-1 visible opacity-100",
+                  )}
+                >
+                  <div className="border shadow-lg bg-popover">
                     <div
-                      className="relative bg-popover"
+                      className="relative"
                       style={{
                         display: "grid",
                         gridAutoFlow: "column",
@@ -104,34 +61,20 @@ export function CategoryMegaMenu() {
                         gap: "0.125rem",
                       }}
                     >
-                      {category.child.map((item) =>
-                        item.child && item.child.length > 0 ? (
-                          <div key={item.slug} className="relative w-full" onMouseEnter={() => handleHoverSub(0, item.slug)} onMouseLeave={() => handleCloseSubPath(0)}>
-                            <Link
-                              href={`/${item.slug}`}
-                              onClick={handleCloseAll}
-                              className="flex child-center justify-between gap-2 px-2 py-1 text-sm text-foreground transition-colors hover:bg-chart-1 hover:text-white w-full"
-                            >
-                              <span>{item.name}</span>
-                              <ChevronRightIcon className="size-4 shrink-0 opacity-70 text-chart-1" aria-hidden />
-                            </Link>
-                            <SubFlyout categories={item.child} parentLabel={item.name} isOpen={openSubPath[0] === item.slug} onLinkClick={handleCloseAll} />
-                          </div>
-                        ) : (
-                          <Link
-                            key={item.slug}
-                            href={`/${item.slug}`}
-                            onClick={handleCloseAll}
-                            className="block px-2 py-1 text-sm text-foreground transition-colors hover:bg-chart-1 hover:text-white w-full"
-                          >
-                            {item.name}
-                          </Link>
-                        ),
-                      )}
+                      {hoveredChildCategories.map((child) => (
+                        <Link
+                          key={child.id}
+                          href={`/${child.slug}`}
+                          onClick={() => setOpenCategoryId(null)}
+                          className="block px-3 py-2 text-sm text-foreground transition-colors hover:bg-chart-1 hover:text-white"
+                        >
+                          {child.name}
+                        </Link>
+                      ))}
                     </div>
-                  ) : null}
+                  </div>
                 </div>
-              </div>
+              )}
             </li>
           ))}
         </ul>
