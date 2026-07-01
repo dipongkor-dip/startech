@@ -23,7 +23,7 @@ export const globalError = async (err: any, req: Request, res: Response, next: N
     error = env.nodeEnv === "development" ? err.stack : undefined;
   }
 
-  console.log("global err", error);
+  console.log("😈 global err", error);
 
   res.status(status).json({
     success: false,

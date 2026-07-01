@@ -8,6 +8,8 @@ export const globalError = async (err: any, req: Request, res: Response, next: N
   let message: string = "Something went wrong!";
   let error: any = err;
 
+  console.log("😈 global Error", err);
+
   // ✅ Handle custom ServerError
   if (err instanceof ServerError) {
     status = err.status;

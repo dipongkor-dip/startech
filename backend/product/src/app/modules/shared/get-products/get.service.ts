@@ -142,11 +142,18 @@ export const getProductsService = async (filters: any) => {
         const subCategorySkip = (currentPage - 1) * subCategoryLimit;
 
         const subCategoryPromises = categoryData.subCategoryIds.map(async (subId) => {
-          return Model.find({...baseQuery, categoryId: subId}, selectedFields)
-            .sort(sortOptions)
-            .skip(subCategorySkip)
-            .limit(subCategoryLimit)
-            .lean();
+          return (
+            Model.find({...baseQuery, categoryId: subId}, selectedFields)
+              .sort(sortOptions)
+              .skip(subCategorySkip)
+              .limit(subCategoryLimit)
+              // 🎯 সাব-ক্যাটাগরির ক্ষেত্রে ক্যাটাগরি পপুলেট
+              .populate({
+                path: "categoryId",
+                select: "slug -_id", // 👈 শুধুমাত্র slug ফিল্ডটি আসবে, আইডি বাদ যাবে
+              })
+              .lean()
+          );
         });
         dataPromise = Promise.all(subCategoryPromises).then((results) => results.flat());
       } else {
@@ -155,6 +162,11 @@ export const getProductsService = async (filters: any) => {
           .sort(sortOptions)
           .skip(globalSkip)
           .limit(modelLimit)
+          // 🎯 সিঙ্গেল ক্যাটাগরির ক্ষেত্রে ক্যাটাগরি পপুলেট
+          .populate({
+            path: "categoryId",
+            select: "slug -_id", // 👈 শুধুমাত্র slug ফিল্ডটি আসবে, আইডি বাদ যাবে
+          })
           .lean();
       }
 

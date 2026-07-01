@@ -42,23 +42,6 @@ export default function RootProductsPages({slug, query}: {slug: string | null; q
     return getChildCategoriesByParentId(flatCategories, matchedCategory.id);
   }, [matchedCategory, flatCategories]);
 
-  // Build slug map for efficient dynamic slug resolution
-  const childSlugMap = React.useMemo(() => {
-    const map = new Map<string, string>();
-
-    if (matchedCategory) {
-      map.set(String(matchedCategory.id), matchedCategory.slug);
-    }
-
-    childCategories.forEach((child) => {
-      if (child.id && child.slug) {
-        map.set(String(child.id), child.slug);
-      }
-    });
-
-    return map;
-  }, [childCategories, matchedCategory]);
-
   const metaData = {limit: 16, page: 1, total: 20};
 
   return (
@@ -95,10 +78,8 @@ export default function RootProductsPages({slug, query}: {slug: string | null; q
             {!loading &&
               !error &&
               products?.map((product, i: number) => {
-                // Resolve dynamic slug from child categories or fallback to parent slug
-                const dynamicSlug = childSlugMap.get(String(product.categoryId)) || matchedCategory?.slug || "products";
 
-                return <Product key={`${product.id}-${i}`} product={product} slug={dynamicSlug} />;
+                return <Product key={`${product.id}-${i}`} product={product} />;
               })}
           </div>
 

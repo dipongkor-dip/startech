@@ -9,7 +9,7 @@ function formatPrice(n: number) {
   return `${n.toLocaleString("en-BD")}৳`;
 }
 
-export default function Product({product, className, slug}: {product: any; className?: string; slug: string}) {
+export default function Product({product, className}: {product: any; className?: string;}) {
   const router = useRouter();
 
   const navigateProduct = (category: string, productTitle: string) => {
@@ -32,7 +32,7 @@ export default function Product({product, className, slug}: {product: any; class
 
       <CardContent className="border-b-[0.5px] mx-2 py-3">
         <Button
-          onClick={() => navigateProduct(slug, product.model)}
+          onClick={() => navigateProduct(product.categoryId.slug, product.model)}
           className="line-clamp-2 font-heading text-sm font-semibold leading-snug text-foreground hover:text-chart-1 hover:underline"
         >
           {product?.model}
@@ -63,7 +63,7 @@ export default function Product({product, className, slug}: {product: any; class
         </div>
 
         <Button
-          onClick={() => navigateProduct(slug, product.model)}
+          onClick={() => navigateProduct(product.categoryId.slug, product.model)}
           className="w-full bg-background text-blue-500 font-medium py-1.5 flex justify-center items-center gap-2 hover:bg-blue-600 hover:text-white"
         >
           <ShoppingCart size={16} />
