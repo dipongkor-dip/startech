@@ -38,15 +38,15 @@ export const productsApi = baseApi.injectEndpoints({
     }),
 
     // 📝 ৪. প্রোডাক্ট আপডেট করা
-    updateProduct: builder.mutation<Product, UpdateProductData>({
-      query: ({id, product}) => ({
-        url: `${SERVICES_URL.PRODUCT}/products/${id}`,
-        method: "PUT",
-        body: product,
-      }),
-      // আপডেট হলে মেইন লিস্ট এবং ঐ নির্দিষ্ট প্রোডাক্টের ক্যাশ দুইটাই রিফ্রেশ হবে
-      invalidatesTags: (result, error, {id}) => ["PRODUCTS", {type: "PRODUCT", id}],
-    }),
+    // updateProduct: builder.mutation<Product, UpdateProductData>({
+    //   query: ({id, product}) => ({
+    //     url: `${SERVICES_URL.PRODUCT}/products/${id}`,
+    //     method: "PUT",
+    //     body: product,
+    //   }),
+    //   // আপডেট হলে মেইন লিস্ট এবং ঐ নির্দিষ্ট প্রোডাক্টের ক্যাশ দুইটাই রিফ্রেশ হবে
+    //   invalidatesTags: (result, error, {id}) => ["PRODUCTS", {type: "PRODUCT", id}],
+    // }),
 
     // ❌ ৫. প্রোডাক্ট ডিলিট করা
     deleteProduct: builder.mutation<void, string>({
@@ -60,4 +60,4 @@ export const productsApi = baseApi.injectEndpoints({
 });
 
 // ফ্রন্টএন্ডে ব্যবহারের জন্য অটো-জেনারেটেড হুকগুলো এক্সপোর্ট করা হচ্ছে
-export const {useGetProductsQuery, useGetProductByIdQuery, useCreateProductMutation, useUpdateProductMutation, useDeleteProductMutation} = productsApi;
+export const {useGetProductsQuery, useGetProductByIdQuery, useCreateProductMutation, useDeleteProductMutation} = productsApi;

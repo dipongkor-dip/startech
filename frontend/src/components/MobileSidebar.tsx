@@ -7,10 +7,10 @@ import {cn} from "@/lib/utils";
 import {SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel} from "@/components/ui/sidebar";
 import {Sheet, SheetContent} from "@/components/ui/sheet";
 import {useRouter} from "next/navigation";
-import {NavCategory} from "@/app/(software)/(products)/layout";
 import {useAppSelector} from "@/store/hooks";
+import type {Category} from "@/store/slices/categories/interface";
 
-function renderMobileItems(categories: NavCategory[], level: number, onSelect: (categoryId: string) => void, onClose: () => void) {
+function renderMobileItems(categories: Category[], level: number, onSelect: (categoryId: string) => void, onClose: () => void) {
   return (
     <div className={cn(level === 0 ? "space-y-1" : "ml-4 space-y-1")}>
       {categories.map((item, index) => (
@@ -46,7 +46,7 @@ export function MobileSidebar({mobileSidebarOpen: mobileSidebarOpenProp, onMobil
   const [mobileSidebarOpenState, setMobileSidebarOpenState] = React.useState(false);
   const mobileSidebarOpen = mobileSidebarOpenProp ?? mobileSidebarOpenState;
 
-  const {categories, loading} = useAppSelector((state) => state.categories);
+  const {categories} = useAppSelector((state) => state.categories);
 
   const setMobileSidebarOpen = React.useCallback(
     (open: boolean) => {
@@ -75,13 +75,13 @@ export function MobileSidebar({mobileSidebarOpen: mobileSidebarOpenProp, onMobil
                     <div key={category.name} className="border-b border-sidebar-border last:border-b-0">
                       <button
                         type="button"
-                        onClick={() => setOpenMobileCategory((prev) => (prev === category.name ? null : category.name))}
-                        className="flex w-full child-center justify-between gap-2 px-3 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+                        onClick={() => setOpenMobileCategory((prev) => (prev === category.slug ? null : category.slug))}
+                        className="flex w-full items-center justify-between gap-2 px-3 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
                       >
                         <span>{category.name}</span>
-                        <ChevronDownIcon className={cn("size-4 transition-transform", openMobileCategory === category.name ? "rotate-180" : "")} />
+                        <ChevronDownIcon className={cn("size-4 transition-transform", openMobileCategory === category.slug ? "rotate-180" : "")} />
                       </button>
-                      {openMobileCategory === category.name ? (
+                      {openMobileCategory === category.slug ? (
                         <div className="ml-4 space-y-1">
                           {category.child
                             ? renderMobileItems(

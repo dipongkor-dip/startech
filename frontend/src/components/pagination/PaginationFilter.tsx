@@ -79,7 +79,6 @@ export function PaginationFilter({page = 1, limit = 16, total, className, siblin
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious
-              size={10}
               onClick={() => page > 1 && handlePageChange(page - 1)}
               className={cn("rounded-none border px-3 py-1 text-sm font-semibold", page <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer")}
             />
@@ -93,7 +92,6 @@ export function PaginationFilter({page = 1, limit = 16, total, className, siblin
             ) : (
               <PaginationItem key={page}>
                 <PaginationLink
-                  size={10}
                   onClick={() => handlePageChange(page as number)}
                   isActive={page === page}
                   className={cn("rounded-none border px-3 py-1 text-sm font-semibold", page === page ? "bg-chart-1 text-white" : "bg-white text-black")}
@@ -106,7 +104,6 @@ export function PaginationFilter({page = 1, limit = 16, total, className, siblin
 
           <PaginationItem>
             <PaginationNext
-              size={10}
               onClick={() => page < totalPages && handlePageChange(page + 1)}
               className={cn("rounded-none border px-3 py-1 text-sm font-semibold", page >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer")}
             />

@@ -12,7 +12,6 @@ import {getChildCategoriesByParentId} from "@/lib/category-utils";
 export function CategoryMegaMenu() {
   const router = useRouter();
   const flatCategories = useAppSelector(selectFlatCategories);
-  console.log("object", flatCategories);
 
   // Get only root categories (no parent)
   const rootCategories = React.useMemo(() => flatCategories.filter((cat) => !cat.parentId), [flatCategories]);

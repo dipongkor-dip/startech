@@ -17,14 +17,14 @@ const CHAT_SERVICE_URL = process.env.NEXT_PUBLIC_CHAT_SERVICE_URL || "http://loc
 const DEMO_ROOM_ID = "support-room-1";
 
 export default function ChatPage() {
-  const authUser = useAppSelector((s) => s.auth.user);
+  const {user} = useAppSelector((s) => s.auth);
   const socketRef = useRef<Socket | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [text, setText] = useState("");
   const [connected, setConnected] = useState(false);
   const [role, setRole] = useState<"customer" | "customerSupportManager">("customer");
 
-  const senderId = useMemo(() => authUser?.id || "demo-customer", [authUser?.id]);
+  const senderId = useMemo(() => user?.phone || "demo-customer", [user?.phone]);
 
   useEffect(() => {
     const socket = io(CHAT_SERVICE_URL, {
@@ -85,7 +85,10 @@ export default function ChatPage() {
       <section className="mt-6 rounded-xl border bg-card">
         <div className="max-h-[420px] space-y-3 overflow-y-auto p-4">
           {messages.map((m) => (
-            <div key={m.id} className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${m.senderRole === "customer" ? "ml-auto bg-indigo-600 text-white" : "bg-muted text-foreground"}`}>
+            <div
+              key={m.id}
+              className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${m.senderRole === "customer" ? "ml-auto bg-indigo-600 text-white" : "bg-muted text-foreground"}`}
+            >
               <p>{m.message}</p>
               <p className={`mt-1 text-[11px] ${m.senderRole === "customer" ? "text-indigo-100" : "text-muted-foreground"}`}>
                 {new Date(m.createdAt).toLocaleTimeString()}

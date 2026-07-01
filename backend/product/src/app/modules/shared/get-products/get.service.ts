@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, {Model} from "mongoose";
 import ServerError from "../../../handler/ServerError";
 import status from "http-status";
 import {category} from "../categories/categories.model";
@@ -31,29 +31,27 @@ const getCategoryAndSubCategoryIds = async (slug: string): Promise<CategoryDataR
   };
 };
 
-// ২. একটিভ কালেকশন খোঁজার ফাংশন
-const findCollectionsWithCategory = async (targetCategoryIds: mongoose.Types.ObjectId[], customSkipCollections: string[] = []): Promise<string[]> => {
-  if (!mongoose.connection.db) return [];
+const skipModelNames = new Set(["Category", "Description", "Review", "Query", "User", "Order"]);
 
-  const collections = await mongoose.connection.db.listCollections({}, {nameOnly: true}).toArray();
-  const collectionNames = collections.map((col) => col.name);
+const findModelsWithCategory = async (targetCategoryIds: mongoose.Types.ObjectId[], customSkipModelNames: string[] = []): Promise<string[]> => {
+  const skipNames = new Set([...skipModelNames, ...customSkipModelNames]);
+  const registeredModels = mongoose.modelNames().filter((modelName) => !skipNames.has(modelName));
 
-  const skipCollections = new Set(["categories", "descriptions", "reviews", "queries", "users", "orders", ...customSkipCollections]);
-  const targetCollections = collectionNames.filter((name) => !skipCollections.has(name));
-
-  const collectionsFound: string[] = [];
+  const matchedModels: string[] = [];
 
   await Promise.all(
-    targetCollections.map(async (colName) => {
-      const collection = mongoose.connection.db?.collection(colName);
-      const exists = await collection?.findOne({categoryId: {$in: targetCategoryIds}}, {projection: {_id: 1}});
+    registeredModels.map(async (modelName) => {
+      const Model = mongoose.models[modelName] as Model<any> | undefined;
+      if (!Model) return;
+
+      const exists = await Model.exists({categoryId: {$in: targetCategoryIds}});
       if (exists) {
-        collectionsFound.push(colName);
+        matchedModels.push(modelName);
       }
     }),
   );
 
-  return collectionsFound;
+  return matchedModels;
 };
 
 // মেইন সার্ভিস ফাংশন
@@ -65,14 +63,14 @@ export const getProductsService = async (filters: any) => {
 
   // параллельно ক্যাটাগরি ডাটা ফেচিং
   const categoryData = await getCategoryAndSubCategoryIds(slug);
-  const activeCollections = await findCollectionsWithCategory(categoryData.allIds);
+  const activeModels = await findModelsWithCategory(categoryData.allIds);
 
-  if (activeCollections.length === 0) {
+  if (activeModels.length === 0) {
     return {products: [], metaData: {total: 0, page: currentPage, limit: currentLimit, totalPages: 0}};
   }
 
-  // কালেকশন প্রতি লিমিট বণ্টন
-  const collectionLimit = Math.max(1, Math.floor(currentLimit / activeCollections.length));
+  // প্রতিটি model-এর জন্য লিমিট বণ্টন
+  const modelLimit = Math.max(1, Math.floor(currentLimit / activeModels.length));
 
   // ডাইনামিক কুয়েরি ফিল্টার বিল্ডার
   const baseQuery: any = {};
@@ -110,58 +108,54 @@ export const getProductsService = async (filters: any) => {
 
   // ক্লিন প্রোজেকশন ফিল্ডস
   const selectedFields = {
-    projection: {
-      model: 1,
-      price: 1,
-      discountPrice: 1,
-      images: 1,
-      availability: 1,
-      display: 1,
-      processor: 1,
-      camera: 1,
-      features: 1,
-      categoryId: 1,
-      createdAt: 1,
-      _id: 1,
-    },
+    model: 1,
+    price: 1,
+    discountPrice: 1,
+    images: 1,
+    availability: 1,
+    display: 1,
+    processor: 1,
+    camera: 1,
+    features: 1,
+    categoryId: 1,
+    createdAt: 1,
+    _id: 1,
   };
 
   let finalProducts: any[] = [];
   let totalCount = 0;
 
-  // ৫. প্রতিটি কালেকশন থেকে ডাটা ফেচ করা
-  const collectionResults = await Promise.all(
-    activeCollections.map(async (colName) => {
-      const collection = mongoose.connection.db?.collection(colName);
-      if (!collection) return {products: [], count: 0};
+  // ৫. প্রতিটি model থেকে ডাটা ফেচ করা
+  const modelResults = await Promise.all(
+    activeModels.map(async (modelName) => {
+      const Model = mongoose.models[modelName] as Model<any> | undefined;
+      if (!Model) return {products: [], count: 0};
 
-      const countPromise = collection.countDocuments({
+      const countPromise = Model.countDocuments({
         ...baseQuery,
         categoryId: {$in: categoryData.allIds},
       });
 
       let dataPromise;
       if (categoryData.subCategoryIds.length >= 2) {
-        const subCategoryLimit = Math.max(1, Math.floor(collectionLimit / categoryData.subCategoryIds.length));
+        const subCategoryLimit = Math.max(1, Math.floor(modelLimit / categoryData.subCategoryIds.length));
         const subCategorySkip = (currentPage - 1) * subCategoryLimit;
 
         const subCategoryPromises = categoryData.subCategoryIds.map(async (subId) => {
-          return collection
-            .find({...baseQuery, categoryId: subId}, selectedFields)
+          return Model.find({...baseQuery, categoryId: subId}, selectedFields)
             .sort(sortOptions)
             .skip(subCategorySkip)
             .limit(subCategoryLimit)
-            .toArray();
+            .lean();
         });
         dataPromise = Promise.all(subCategoryPromises).then((results) => results.flat());
       } else {
-        const globalSkip = (currentPage - 1) * collectionLimit;
-        dataPromise = collection
-          .find({...baseQuery, categoryId: {$in: categoryData.allIds}}, selectedFields)
+        const globalSkip = (currentPage - 1) * modelLimit;
+        dataPromise = Model.find({...baseQuery, categoryId: {$in: categoryData.allIds}}, selectedFields)
           .sort(sortOptions)
           .skip(globalSkip)
-          .limit(collectionLimit)
-          .toArray();
+          .limit(modelLimit)
+          .lean();
       }
 
       // ডাটা ও কাউন্ট একসাথে প্যারালালি ফেচ হবে
@@ -171,8 +165,8 @@ export const getProductsService = async (filters: any) => {
     }),
   );
 
-  // রেজাল্ট কম্বাইন করা (কোনো কাস্টম লুপ বা নেম ম্যাপিং ছাড়াই সরাসরি পুশ)
-  collectionResults.forEach((result) => {
+  // রেজাল্ট কম্বাইন করা
+  modelResults.forEach((result) => {
     if (result) {
       finalProducts.push(...result.products);
       totalCount += result.count;
@@ -212,34 +206,26 @@ export const getProductService = async (categorySlug: string, productModel: stri
 
   const targetCategoryId = new mongoose.Types.ObjectId(cat._id.toString());
 
-  // ২. ডাটাবেজের কালেকশন লিস্ট থেকে কেবল নামগুলো নেওয়া
-  if (!mongoose.connection.db) return null;
-  const collections = await mongoose.connection.db.listCollections({}, {nameOnly: true}).toArray();
-  const collectionNames = collections.map((col) => col.name);
+  // ২. রেজিস্টার করা product model গুলো থেকে এই ক্যাটাগরির model খুঁজে বের করা
+  const activeModels = await findModelsWithCategory([targetCategoryId]);
 
-  // বাদ দেওয়ার কালেকশন লিস্ট (Set ব্যবহার করা হয়েছে ফাস্টার চেকিংয়ের জন্য)
-  const skipCollections = new Set(["categories", "descriptions", "reviews", "queries", "users", "orders"]);
-  const targetCollections = collectionNames.filter((name) => !skipCollections.has(name));
+  let matchedModel: Model<any> | null = null;
 
-  let matchedCollectionName: string | null = null;
+  // ৩. লুপ চালিয়ে শুধুমাত্র এই ক্যাটাগরির product model কোনটি তা খুঁজে বের করা
+  for (const modelName of activeModels) {
+    const Model = mongoose.models[modelName] as Model<any> | undefined;
+    if (!Model) continue;
 
-  // ৩. লুপ চালিয়ে শুধুমাত্র এই ক্যাটাগরির "একমাত্র কালেকশন" কোনটি তা খুঁজে বের করা
-  for (const colName of targetCollections) {
-    const collection = mongoose.connection.db?.collection(colName);
-    const exists = await collection?.findOne({categoryId: targetCategoryId}, {projection: {_id: 1}});
-
+    const exists = await Model.exists({categoryId: targetCategoryId});
     if (exists) {
-      matchedCollectionName = colName;
-      break; // ক্যাটাগরির একমাত্র কালেকশনটি পাওয়ামাত্র লুপ বন্ধ (O(1) এর মতো কাজ করবে)
+      matchedModel = Model;
+      break;
     }
   }
 
-  if (!matchedCollectionName) {
-    throw new ServerError(status.NOT_FOUND, "No collection found for this category");
+  if (!matchedModel) {
+    throw new ServerError(status.NOT_FOUND, "No product model found for this category");
   }
-
-  // ৪. সরাসরি সেই নির্দিষ্ট কালেকশন থেকে মডেল এবং ক্যাটাগরি আইডি দিয়ে প্রোডাক্ট তুলে আনা
-  const finalCollection = mongoose.connection.db.collection(matchedCollectionName);
 
   // 🎯 ফ্রন্টএন্ডের "samsung-s24-ultra" কে "samsung s24 ultra" তে রূপান্তর করা
   const formattedModelQuery = productModel.replace(/-/g, " ");
@@ -248,13 +234,15 @@ export const getProductService = async (categorySlug: string, productModel: stri
   // এটি "samsung s24 ultra" দিয়ে ডাটাবেজের "Samsung S24 Ultra" কে নিখুঁতভাবে খুঁজে পাবে
   const modelRegex = new RegExp(`^${formattedModelQuery}$`, "i");
 
-  const product = await finalCollection.findOne(
-    {
-      model: modelRegex, // 🎯 এখানে রেগুলার এক্সপ্রেশন পাস করা হলো
-      categoryId: targetCategoryId,
-    },
-    {projection: {__v: 0}},
-  );
+  const product = await matchedModel
+    .findOne(
+      {
+        model: modelRegex, // 🎯 এখানে রেগুলার এক্সপ্রেশন পাস করা হলো
+        categoryId: targetCategoryId,
+      },
+      {__v: 0},
+    )
+    .lean();
 
   if (!product) {
     throw new ServerError(status.NOT_FOUND, "Product Not Found");
