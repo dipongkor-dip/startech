@@ -7,15 +7,15 @@ import {useAppSelector, useAppDispatch} from "@/store/hooks"; // 🎯 useAppDisp
 import {UserRole} from "@/store/slices/auth/interface";
 import {Sidebar} from "@/components/dashboard/common/Sidebar";
 import {logout} from "@/store/slices/auth/api";
-import {toast} from "sonner"; // 🎯 sonner থেকে toast ইম্পোর্ট করুন
+import {toast} from "sonner";
 
 const Layout = ({children}: {children: React.ReactNode}) => {
   const pathname = usePathname();
-  const router = useRouter(); // 🎯 রাউটার ইনিশিয়ালাইজ করা হয়েছে
-  const dispatch = useAppDispatch(); // 🎯 ডিসপ্যাচ ইনিশিয়ালাইজ করা হয়েছে
+  const router = useRouter();
+  const dispatch = useAppDispatch();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false); // লগআউট স্টেট ট্র্যাকিং
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const {user, loading} = useAppSelector((state) => state.auth);
   const userRole = user?.role as UserRole;

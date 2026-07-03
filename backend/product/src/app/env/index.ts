@@ -16,4 +16,8 @@ export default {
   jwt_secret: process.env.JWT_SECRET as string,
   access_token_expires: process.env.ACCESS_TOKEN_EXPIRES,
   refresh_token_expires: process.env.REFRESH_TOKEN_EXPIRES,
+
+  cloudinary_cloud_name: process.env.CLOUDINARY_CLOUD_NAME as string,
+  cloudinary_api_key: process.env.CLOUDINARY_API_KEY as string,
+  cloudinary_api_secret: process.env.CLOUDINARY_API_SECRET as string,
 };

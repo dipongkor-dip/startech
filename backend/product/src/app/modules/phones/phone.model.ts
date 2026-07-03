@@ -75,33 +75,8 @@ const specificationSchema = new Schema(
   {_id: false},
 );
 
-const PhoneSchema = new Schema(
+const PhoneSchema = new Schema<IPhone>(
   {
-    brand: {type: String, required: true, trim: true},
-    categoryId: {type: mongoose.Schema.Types.ObjectId, ref: "Category", required: true, index: true},
-    permissionId: {type: String, required: true},
-
-    // 🎯 model ফিল্ডটিকে এখানে ইউনিক এবং প্রাইমারি ইনডেক্স হিসেবে সেট করা হলো
-    model: {
-      type: String,
-      required: true,
-      trim: true,
-      unique: true, // ২টা প্রোডাক্টের মডেল কখনো এক হবে না
-      index: true, // ডাটাবেজ সার্চ সুপার ফাস্ট করার জন্য ইনডেক্সিং
-    },
-
-    productCode: {type: String, default: "", unique: true},
-    price: {type: Number, required: true, min: 0},
-    discountPrice: {type: Number, min: 0},
-
-    // সরাসরি availability ফিল্ড অপশন হিসেবে থাকছে
-    availability: {
-      type: String,
-      enum: ["In Stock", "Coming Soon", "Pre Order", "Out of Stock"],
-      default: "In Stock",
-      index: true,
-    },
-
     options: {
       type: [{ram: String, storage: String, color: String}],
       default: [],
@@ -114,22 +89,8 @@ const PhoneSchema = new Schema(
     },
     storage: {type: String, default: ""},
     features: [{type: String}],
-    images: [{type: String, default: []}],
+    images: [{url: String, publicId: String}],
     specification: specificationSchema,
-    description: {
-      type: [
-        {
-          items: [
-            {
-              title: {type: String, required: true},
-              des: {type: String, required: true},
-            },
-          ],
-          pic: {type: String, default: ""},
-        },
-      ],
-      default: [],
-    },
   },
   {
     timestamps: true,
@@ -142,6 +103,4 @@ const PhoneSchema = new Schema(
   },
 );
 
-PhoneSchema.index({categoryId: 1, price: 1, availability: 1});
-
-export const Phone = mongoose.model<IPhone & mongoose.Document>("Phone", PhoneSchema);
+export const Phone = mongoose.model<IPhone>("Phone", PhoneSchema);

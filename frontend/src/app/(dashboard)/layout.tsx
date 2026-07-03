@@ -1,9 +1,36 @@
+"use client";
+
 import {AppSidebar} from "@/components/app-sidebar";
 import {Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator} from "@/components/ui/breadcrumb";
 import {Separator} from "@/components/ui/separator";
 import {SidebarInset, SidebarProvider, SidebarTrigger} from "@/components/ui/sidebar";
+import {useAppSelector} from "@/store/hooks";
+import {UserRole} from "@/store/slices/auth/interface";
+import {useRouter} from "next/navigation";
+import {useEffect} from "react";
 
 export default function Page({children}: {children: React.ReactNode}) {
+  const router = useRouter();
+  const {user, loading} = useAppSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (user && !user.isValidated) {
+      router.replace("/send-otp");
+    } else if (
+      user &&
+      user.role !== UserRole.ADMIN &&
+      user.role !== UserRole.SUPER_ADMIN &&
+      user.role !== UserRole.CUSTOMER_SUPPORT_MANAGER &&
+      user.role !== UserRole.PRODUCT_MANAGER
+    ) {
+      router.replace("/unauthorized");
+    }
+  }, [router, user]);
+
+  if (loading) {
+    return <h2>Loading...</h2>;
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar />

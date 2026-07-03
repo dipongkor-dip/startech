@@ -18,8 +18,12 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import {ChevronRightIcon} from "lucide-react";
+import Link from "next/link";
+import {roleBaseDashboards} from "@/proxy";
+import {UserRole} from "@/store/slices/auth/interface";
+import {useAppSelector} from "@/store/hooks";
 
-const services = ["Home", "Chat", "Users", "Products", "Orders", "Deliveries", "Payments"];
+let services = ["Home", "Chat", "Users", "Products", "Orders", "Deliveries", "Payments", "Services"];
 
 const serviceNav: Record<string, {title: string; url: string; items: {title: string; url: string; isActive?: boolean}[]}[]> = {
   Home: [
@@ -158,8 +162,11 @@ const serviceNav: Record<string, {title: string; url: string; items: {title: str
 };
 
 export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
+  const {user} = useAppSelector((state) => state.auth);
   const [selectedService, setSelectedService] = React.useState(services[0]);
   const navMain = serviceNav[selectedService] ?? serviceNav.Home;
+
+  let path = roleBaseDashboards[user?.role as UserRole];
 
   return (
     <Sidebar {...props}>
@@ -183,7 +190,7 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenu>
                     {item.items.map((item) => (
                       <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton isActive={item.isActive} render={<a href={item.url} />}>
+                        <SidebarMenuButton isActive={item.isActive} render={<Link href={item.url} />}>
                           {item.title}
                         </SidebarMenuButton>
                       </SidebarMenuItem>

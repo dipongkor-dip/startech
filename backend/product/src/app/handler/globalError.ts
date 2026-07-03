@@ -2,6 +2,7 @@ import {NextFunction, Request, Response} from "express";
 import http_status from "http-status-codes";
 import ServerError from "./ServerError";
 import env from "../env";
+import multer from "multer";
 
 export const globalError = async (err: any, req: Request, res: Response, next: NextFunction) => {
   let status: number = http_status.BAD_REQUEST;
@@ -21,6 +22,16 @@ export const globalError = async (err: any, req: Request, res: Response, next: N
     const field = Object.keys(err.keyValue)[0];
     message = `Duplicate value for field "${field}": ${err.keyValue[field]}`;
     error = env.nodeEnv === "development" ? err.stack : undefined;
+  }
+
+  if (err instanceof multer.MulterError) {
+    // যদি সাইজ লিমিট পার হয়ে যায়
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({
+        success: false,
+        message: "File too large! Maximum allowed size is 5MB.",
+      });
+    }
   }
 
   console.log("😈 global err", error);

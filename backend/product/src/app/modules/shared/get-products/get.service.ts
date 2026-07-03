@@ -2,6 +2,7 @@ import mongoose, {Model} from "mongoose";
 import ServerError from "../../../handler/ServerError";
 import status from "http-status";
 import {category} from "../categories/categories.model";
+import {Product} from "../products/products.model";
 
 // ১. টাইপস্ক্রিপ্টের জন্য নতুন মিনিমাল ইন্টারফেস (নামের প্রোপার্টি বাদ দেওয়া হয়েছে)
 interface CategoryDataResult {
@@ -205,39 +206,8 @@ export const getProductsService = async (filters: any) => {
   };
 };
 
-export const getProductService = async (categorySlug: string, productModel: string) => {
-  if (!categorySlug || !productModel) {
-    throw new ServerError(status.BAD_REQUEST, "Category slug and Product model are required");
-  }
-
-  // ১. স্লাগ দিয়ে নির্দিষ্ট ক্যাটাগরি খুঁজে বের করা
-  const cat = await category.findOne({slug: categorySlug, isActive: true}).select("_id").lean().exec();
-  if (!cat) {
-    throw new ServerError(status.NOT_FOUND, "Category Not Found");
-  }
-
-  const targetCategoryId = new mongoose.Types.ObjectId(cat._id.toString());
-
-  // ২. রেজিস্টার করা product model গুলো থেকে এই ক্যাটাগরির model খুঁজে বের করা
-  const activeModels = await findModelsWithCategory([targetCategoryId]);
-
-  let matchedModel: Model<any> | null = null;
-
-  // ৩. লুপ চালিয়ে শুধুমাত্র এই ক্যাটাগরির product model কোনটি তা খুঁজে বের করা
-  for (const modelName of activeModels) {
-    const Model = mongoose.models[modelName] as Model<any> | undefined;
-    if (!Model) continue;
-
-    const exists = await Model.exists({categoryId: targetCategoryId});
-    if (exists) {
-      matchedModel = Model;
-      break;
-    }
-  }
-
-  if (!matchedModel) {
-    throw new ServerError(status.NOT_FOUND, "No product model found for this category");
-  }
+export const getProductService = async (productModel: string) => {
+  if (!productModel) throw new ServerError(status.NOT_FOUND, "Product Model not provided");
 
   // 🎯 ফ্রন্টএন্ডের "samsung-s24-ultra" কে "samsung s24 ultra" তে রূপান্তর করা
   const formattedModelQuery = productModel.replace(/-/g, " ");
@@ -246,19 +216,7 @@ export const getProductService = async (categorySlug: string, productModel: stri
   // এটি "samsung s24 ultra" দিয়ে ডাটাবেজের "Samsung S24 Ultra" কে নিখুঁতভাবে খুঁজে পাবে
   const modelRegex = new RegExp(`^${formattedModelQuery}$`, "i");
 
-  const product = await matchedModel
-    .findOne(
-      {
-        model: modelRegex, // 🎯 এখানে রেগুলার এক্সপ্রেশন পাস করা হলো
-        categoryId: targetCategoryId,
-      },
-      {__v: 0},
-    )
-    .lean();
-
-  if (!product) {
-    throw new ServerError(status.NOT_FOUND, "Product Not Found");
-  }
+  const product = await Product.findOne({model: modelRegex}).lean().exec();
 
   return product;
 };

@@ -3,6 +3,7 @@ import app from "./app";
 import {connectDatabase, disconnectDatabase} from "./app/config/database";
 import env from "./app/env";
 import {connectRabbitMQ} from "./app/config/rabbitmq";
+import { initCloudinary } from "./app/config/cloudinary";
 import {seedCategories} from "./seed/seed";
 
 let server: Server;
@@ -14,6 +15,8 @@ async function main() {
 
     // Connect to RabbitMQ
     await connectRabbitMQ();
+
+    await initCloudinary();
 
     // Seed categories only once when server starts
     // await seedCategories();

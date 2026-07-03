@@ -1,15 +1,8 @@
 import {z} from "zod";
+import {descriptionValidationSchema} from "../shared/description/description.validation";
+import {productValidationSchema} from "../shared/products/products.validation";
 
-export const phoneCreateSchema = z.object({
-  brand: z.string().min(1, "Brand is required"),
-  categoryId: z.string().min(1, "CategoryId is required"), // ObjectId string
-  permissionId: z.string().min(1, "PermissionId is required"),
-  model: z.string().min(1, "Model is required"),
-  productCode: z.string().optional(),
-  price: z.number().min(0, "Price must be positive"),
-  discountPrice: z.number().min(0).optional(),
-  status: z.enum(["In Stock", "Out of Stock", "Coming Soon"]).default("In Stock"),
-
+export const phoneValidation = z.object({
   options: z
     .array(
       z.object({
@@ -73,18 +66,10 @@ export const phoneCreateSchema = z.object({
     os: z.string().optional(),
     warranty: z.string().optional(),
   }),
+});
 
-  description: z
-    .array(
-      z.object({
-        items: z.array(
-          z.object({
-            title: z.string().min(1, "Title is required"),
-            des: z.string().min(1, "Description is required"),
-          }),
-        ),
-        pic: z.string().optional(),
-      }),
-    )
-    .optional(),
+export const phoneValidationSchema = z.object({
+  product: productValidationSchema,
+  phone: phoneValidation,
+  description: descriptionValidationSchema,
 });

@@ -20,9 +20,9 @@ export const getProducts = catchAsync(async (req: Request, res: Response, next: 
 });
 
 export const getProduct = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const {categorySlug, productModel} = req.params;
+  const {productModel} = req.params;
   try {
-    const products = await getProductService(categorySlug, productModel);
+    const products = await getProductService(productModel);
 
     sendResponse(res, {
       status: status.OK,

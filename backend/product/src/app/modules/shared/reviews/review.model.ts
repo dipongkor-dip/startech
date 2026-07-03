@@ -8,7 +8,7 @@ const ReviewSchema = new Schema<IReview>(
     rating: {type: Number, required: true, min: 1, max: 5},
     comment: {type: String, required: true, trim: true},
   },
-  {timestamps: true},
+  {timestamps: true, versionKey: false},
 );
 
 export const Review = mongoose.model<IReview>("Review", ReviewSchema);

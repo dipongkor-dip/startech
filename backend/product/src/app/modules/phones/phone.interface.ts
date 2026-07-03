@@ -1,19 +1,4 @@
 import mongoose from "mongoose";
-import { IQuery } from "../shared/query/query.interface";
-import { IReview } from "../shared/reviews/review.interface";
-import { IDescription } from "../shared/description/description.interface";
-
-
-export interface IQueries {
-  queries: IQuery[];
-  totalQueries: number;
-}
-
-export interface IReviews {
-  reviews: IReview[];
-  totalReviews: number;
-  averageRating: number;
-}
 
 export interface IPhoneOption {
   ram?: string;
@@ -21,23 +6,10 @@ export interface IPhoneOption {
   color?: string;
 }
 
-export enum ProductStatus {
-  ACTIVE = "ACTIVE",
-  INACTIVE = "INACTIVE",
-  DELETE = "DELETE",
-}
-
 export interface IPhone {
   _id: mongoose.Types.ObjectId;
-  brand: string;
-  categoryId: mongoose.Types.ObjectId;
-  permissionId: String;
-  model: string;
-  productCode?: string;
-  price: number;
-  discountPrice?: number;
-  status?: "In Stock" | "Out of Stock" | "Coming Soon";
-  productStatus?: ProductStatus;
+  images: {url: string; publicId: string}[];
+
   options?: IPhoneOption[];
   display: string;
   processor: string;
@@ -47,7 +19,6 @@ export interface IPhone {
   };
   storage: string;
   features: string[];
-  images: {url: string}[];
   specification?: {
     display?: {
       size?: string;
@@ -91,9 +62,6 @@ export interface IPhone {
     os?: string;
     warranty?: string;
   };
-  description?: IDescription;
-  queries?: IQueries;
-  reviews?: IReviews;
   createdAt?: Date;
   updatedAt?: Date;
 }

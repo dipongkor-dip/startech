@@ -1,9 +1,14 @@
 import {Phone} from "./phone.model";
-import {IPhone, ProductStatus} from "./phone.interface";
+import {IPhone} from "./phone.interface";
 import {sendRpcMessage} from "../../config/rabbitmq";
 import ServerError from "../../handler/ServerError";
 import status from "http-status";
-import {ObjectId} from "mongoose";
+import mongoose, {ObjectId} from "mongoose";
+import {Product} from "../shared/products/products.model";
+import {ProductInt, ProductModelName, ProductStatus} from "../shared/products/products.interface";
+import {Description} from "../shared/description/description.model";
+import {IDescription} from "../shared/description/description.interface";
+import {uploadFilesToCloudinary} from "../../config/cloudinary";
 
 const getPhones = async () => {
   const phones = await Phone.find({productStatus: ProductStatus.ACTIVE}).sort({createdAt: -1}).lean();
@@ -21,10 +26,45 @@ const getPhoneById = async (id: string) => {
   return {...p, model: p.modelName ?? p.model, modelName: undefined};
 };
 
-const createPhone = async (data: Partial<IPhone>) => {
-  const phone = await Phone.create(data);
-  const p = phone.toObject() as unknown as Record<string, unknown>;
-  return {...p, model: p.modelName ?? p.model, modelName: undefined};
+export const createPhone = async (
+  productData: any,
+  phoneData: any,
+  descriptionData: any,
+  phoneImages: {url: string; publicId: string}[], // 🎯 ফোনের ইমেজ
+  descImages: {url: string; publicId: string}[], // 🎯 ডেসক্রিপশনের ইমেজ
+) => {
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    // 🎯 ১. যার যার কালেকশনের ইমেজ তার তার অবজেক্টে সেট করা হলো
+    phoneData.images = phoneImages;
+    descriptionData.images = descImages;
+
+    // ২. ফোন ডকুমেন্ট তৈরি ও সেভ
+    const phn = new Phone(phoneData);
+    await phn.save({session});
+
+    // ৩. ডেসক্রিপশন ডকুমেন্ট তৈরি ও সেভ
+    const des = new Description(descriptionData);
+    await des.save({session});
+
+    // ৪. প্রোডাক্ট রিলেশন ও সেভ
+    productData.specificationModel = "Phone";
+    productData.productId = phn._id;
+
+    const prd = new Product(productData);
+    await prd.save({session});
+
+    await session.commitTransaction();
+    return prd;
+  } catch (err) {
+    await session.abortTransaction();
+    throw err;
+  } finally {
+    await session.endSession();
+  }
 };
 
 const updatePhone = async (id: string, data: Partial<IPhone>, userId: string) => {
