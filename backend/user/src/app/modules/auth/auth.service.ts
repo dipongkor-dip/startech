@@ -78,8 +78,6 @@ const login = async (payload: loginDTO) => {
     throw new ServerError(status.FORBIDDEN, "Invalid credentials");
   }
 
-  console.log(user);
-
   if (!user || !user.password) throw new ServerError(status.NOT_FOUND, !user ? "None of your accounts were found." : "User does not have a password set");
 
   const isValid = await bcrypt.compare(password, user.password);

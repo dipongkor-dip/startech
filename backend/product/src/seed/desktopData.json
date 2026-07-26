@@ -3,76 +3,76 @@
     "name": "Desktop Offer",
     "slug": "desktop-offer",
     "title": "Desktop Offer Price in Bangladesh (BD)",
-    "parentId": "6a32238cd215c50305f049bc",
+    "parentId": "6a65b9522170e0ee6db47542",
     "description": "Latest desktop offers in Bangladesh including budget PCs, gaming rigs, and workstation deals. Prices vary depending on configuration and brand."
   },
   {
     "name": "Star PC",
     "slug": "star-pc",
-    "parentId": "6a32238cd215c50305f049bc",
+    "parentId": "6a65b9522170e0ee6db47542",
     "title": "Star PC Price in Bangladesh (BD)",
     "description": "Star PC custom builds available in Bangladesh with flexible configurations for office, gaming, and professional use."
   },
   {
     "name": "Gaming PC",
     "slug": "gaming-pc",
-    "parentId": "6a32238cd215c50305f049bc",
+    "parentId": "6a65b9522170e0ee6db47542",
     "title": "Gaming PC Price in Bangladesh (BD)",
     "description": "High-performance Gaming PCs with powerful graphics cards and processors. Prices start from mid-range builds to premium setups."
   },
   {
     "name": "Brand PC",
     "slug": "brand-pc",
-    "parentId": "6a32238cd215c50305f049bc",
+    "parentId": "6a65b9522170e0ee6db47542",
     "title": "Brand PC Price in Bangladesh (BD)",
     "description": "Branded PCs from top manufacturers like HP, Dell, and Lenovo. Suitable for office and home use with warranty support."
   },
   {
     "name": "All-in-One PC",
     "slug": "all-in-one-pc",
-    "parentId": "6a32238cd215c50305f049bc",
+    "parentId": "6a65b9522170e0ee6db47542",
     "title": "All-in-One PC Price in Bangladesh (BD)",
     "description": "Compact All-in-One PCs combining monitor and CPU in one device. Ideal for space-saving setups."
   },
   {
     "name": "AI PC",
     "slug": "ai-pc",
-    "parentId": "6a32238cd215c50305f049bc",
+    "parentId": "6a65b9522170e0ee6db47542",
     "title": "AI PC Price in Bangladesh (BD)",
     "description": "AI-powered PCs designed for machine learning, data science, and advanced computing workloads."
   },
   {
     "name": "Portable Mini PC",
     "slug": "portable-mini-pc",
-    "parentId": "6a32238cd215c50305f049bc",
+    "parentId": "6a65b9522170e0ee6db47542",
     "title": "Portable Mini PC Price in Bangladesh (BD)",
     "description": "Small form factor Mini PCs for portability and efficiency. Prices vary depending on performance and brand."
   },
   {
     "name": "Apple Mac Mini",
     "slug": "apple-mac-mini",
-    "parentId": "6a32238cd215c50305f049bc",
+    "parentId": "6a65b9522170e0ee6db47542",
     "title": "Apple Mac Mini Price in Bangladesh (BD)",
     "description": "Apple Mac Mini available with M-series processors. Compact yet powerful desktop solution for professionals."
   },
   {
     "name": "Apple iMac",
     "slug": "apple-imac",
-    "parentId": "6a32238cd215c50305f049bc",
+    "parentId": "6a65b9522170e0ee6db47542",
     "title": "Apple iMac Price in Bangladesh (BD)",
     "description": "Apple iMac with Retina display and powerful hardware. Suitable for creative professionals and everyday use."
   },
   {
     "name": "Apple Mac Studio",
     "slug": "apple-mac-studio",
-    "parentId": "6a32238cd215c50305f049bc",
+    "parentId": "6a65b9522170e0ee6db47542",
     "title": "Apple Mac Studio Price in Bangladesh (BD)",
     "description": "Apple Mac Studio designed for high-end creative workflows with advanced performance and expandability."
   },
   {
     "name": "Apple Mac Pro",
     "slug": "apple-mac-pro",
-    "parentId": "6a32238cd215c50305f049bc",
+    "parentId": "6a65b9522170e0ee6db47542",
     "title": "Apple Mac Pro Price in Bangladesh (BD)",
     "description": "Apple Mac Pro workstation for professionals requiring extreme performance and modular expandability."
   }

@@ -1,5 +1,4 @@
 "use client";
-
 import React from "react";
 import {CategoryMegaMenu} from "@/components/CategoryMegaMenu";
 

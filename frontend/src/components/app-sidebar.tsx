@@ -25,24 +25,30 @@ import {useAppSelector} from "@/store/hooks";
 
 let services = ["Home", "Chat", "Users", "Products", "Orders", "Deliveries", "Payments", "Services"];
 
-const serviceNav: Record<string, {title: string; url: string; items: {title: string; url: string; isActive?: boolean}[]}[]> = {
+const serviceNav: Record<
+  string,
+  {title: string; url: string; permission: UserRole[]; items?: {title: string; url: string; isActive?: boolean; permission: UserRole[]}[]}[]
+> = {
   Home: [
     {
       title: "Home Overview",
       url: "#",
       items: [
-        {title: "Dashboard", url: "#", isActive: true},
-        {title: "Activity", url: "#"},
-        {title: "Announcements", url: "#"},
+        {title: "Dashboard", url: "#", isActive: true, permission: [UserRole.ADMIN]},
+        {title: "Activity", url: "#", permission: [UserRole.ADMIN]},
+        {title: "Announcements", url: "#", permission: [UserRole.ADMIN]},
       ],
+      permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
     },
+    {title: "Categories", url: "/categories", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
     {
       title: "Getting Started",
       url: "#",
       items: [
-        {title: "Installation", url: "#"},
-        {title: "Project Structure", url: "#"},
+        {title: "Installation", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
+        {title: "Project Structure", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
       ],
+      permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
     },
   ],
   Chat: [
@@ -50,18 +56,20 @@ const serviceNav: Record<string, {title: string; url: string; items: {title: str
       title: "Conversations",
       url: "#",
       items: [
-        {title: "Recent Messages", url: "#", isActive: true},
-        {title: "Channels", url: "#"},
-        {title: "Groups", url: "#"},
+        {title: "Recent Messages", url: "#", isActive: true, permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
+        {title: "Channels", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
+        {title: "Groups", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
       ],
+      permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
     },
     {
       title: "Settings",
       url: "#",
       items: [
-        {title: "Notifications", url: "#"},
-        {title: "Privacy", url: "#"},
+        {title: "Notifications", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
+        {title: "Privacy", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
       ],
+      permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
     },
   ],
   Users: [
@@ -69,18 +77,20 @@ const serviceNav: Record<string, {title: string; url: string; items: {title: str
       title: "User Management",
       url: "#",
       items: [
-        {title: "All Users", url: "#", isActive: true},
-        {title: "Roles", url: "#"},
-        {title: "Permissions", url: "#"},
+        {title: "All Users", url: "#", isActive: true, permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
+        {title: "Roles", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
+        {title: "Permissions", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
       ],
+      permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
     },
     {
       title: "Profiles",
       url: "#",
       items: [
-        {title: "Active", url: "#"},
-        {title: "Invited", url: "#"},
+        {title: "Active", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
+        {title: "Invited", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
       ],
+      permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
     },
   ],
   Products: [
@@ -88,18 +98,19 @@ const serviceNav: Record<string, {title: string; url: string; items: {title: str
       title: "Catalog",
       url: "#",
       items: [
-        {title: "Products", url: "#", isActive: true},
-        {title: "Categories", url: "#"},
-        {title: "Inventory", url: "#"},
+        {title: "Products", url: "#", isActive: true, permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
+        {title: "Inventory", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
       ],
+      permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
     },
     {
       title: "Pricing",
       url: "#",
       items: [
-        {title: "Discounts", url: "#"},
-        {title: "Offers", url: "#"},
+        {title: "Discounts", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
+        {title: "Offers", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
       ],
+      permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
     },
   ],
   Orders: [
@@ -107,18 +118,20 @@ const serviceNav: Record<string, {title: string; url: string; items: {title: str
       title: "Orders",
       url: "#",
       items: [
-        {title: "All Orders", url: "#", isActive: true},
-        {title: "Pending", url: "#"},
-        {title: "Completed", url: "#"},
+        {title: "All Orders", url: "#", isActive: true, permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
+        {title: "Pending", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
+        {title: "Completed", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
       ],
+      permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
     },
     {
       title: "Returns",
       url: "#",
       items: [
-        {title: "Open Returns", url: "#"},
-        {title: "Refunds", url: "#"},
+        {title: "Open Returns", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
+        {title: "Refunds", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
       ],
+      permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
     },
   ],
   Deliveries: [
@@ -126,18 +139,20 @@ const serviceNav: Record<string, {title: string; url: string; items: {title: str
       title: "Shipments",
       url: "#",
       items: [
-        {title: "Scheduled", url: "#", isActive: true},
-        {title: "In Transit", url: "#"},
-        {title: "Delivered", url: "#"},
+        {title: "Scheduled", url: "#", isActive: true, permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
+        {title: "In Transit", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
+        {title: "Delivered", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
       ],
+      permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
     },
     {
       title: "Routes",
       url: "#",
       items: [
-        {title: "Route Planner", url: "#"},
-        {title: "Drivers", url: "#"},
+        {title: "Route Planner", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
+        {title: "Drivers", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
       ],
+      permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
     },
   ],
   Payments: [
@@ -145,18 +160,20 @@ const serviceNav: Record<string, {title: string; url: string; items: {title: str
       title: "Billing",
       url: "#",
       items: [
-        {title: "Invoices", url: "#", isActive: true},
-        {title: "Transactions", url: "#"},
-        {title: "Payouts", url: "#"},
+        {title: "Invoices", url: "/invoice", isActive: true, permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
+        {title: "Transactions", url: "/transactions", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
+        {title: "Payouts", url: "/payouts", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
       ],
+      permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
     },
     {
       title: "Settings",
       url: "#",
       items: [
-        {title: "Payment Methods", url: "#"},
-        {title: "Tax Settings", url: "#"},
+        {title: "Payment Methods", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
+        {title: "Tax Settings", url: "#", permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN]},
       ],
+      permission: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
     },
   ],
 };
@@ -176,31 +193,40 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent className="gap-0">
         {/* We create a collapsible SidebarGroup for each parent. */}
-        {navMain.map((item) => (
-          <Collapsible key={item.title} title={item.title} defaultOpen className="group/collapsible">
-            <SidebarGroup>
-              <SidebarGroupLabel
-                className="group/label text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                render={<CollapsibleTrigger />}
-              >
-                {item.title} <ChevronRightIcon className="ml-auto transition-transform group-data-open/collapsible:rotate-90" />
-              </SidebarGroupLabel>
-              <CollapsibleContent>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {item.items.map((item) => (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton isActive={item.isActive} render={<Link href={item.url} />}>
-                          {item.title}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </CollapsibleContent>
-            </SidebarGroup>
-          </Collapsible>
-        ))}
+        {navMain.map(
+          (item) =>
+            item.permission.includes(user?.role as UserRole) && (
+              <Collapsible key={item.title} title={item.title} defaultOpen className="group/collapsible">
+                <SidebarGroup>
+                  <SidebarGroupLabel
+                    className="group/label text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    render={<CollapsibleTrigger />}
+                  >
+                    <Link href={`${path}/${item.url}`}>
+                    {item.title}
+
+                    </Link>
+                    {item.items && item.items.length > 0 && (
+                    <ChevronRightIcon className="ml-auto transition-transform group-data-open/collapsible:rotate-90" />
+                    )}
+                  </SidebarGroupLabel>
+                  <CollapsibleContent>
+                    <SidebarGroupContent>
+                      <SidebarMenu>
+                        {item.items?.map((item) => (
+                          <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton isActive={item.isActive} render={<Link href={`${path}/${item.url}`} />}>
+                              {item.title}
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
+                      </SidebarMenu>
+                    </SidebarGroupContent>
+                  </CollapsibleContent>
+                </SidebarGroup>
+              </Collapsible>
+            ),
+        )}
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
